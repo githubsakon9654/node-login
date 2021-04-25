@@ -526,3 +526,59 @@ exports.buyform = async (req, res, next) => {
     
   }
 };
+
+exports.returns = async (req, res, next) => {
+  try{
+    const list = await sequelize.query(
+      `SELECT rt.id,rt.status,rt.re_name,rt.createdAt FROM returns AS rt 
+      LEFT JOIN users ON rt.userId = users.id`,
+      {
+        nest: true,
+        type: QueryTypes.SELECT
+      }
+    );
+    var length = list.length;
+    var rows = [];
+    rows.push(['No.', 'ชื่อเจ้าหน้าที่', 'สถานะ', 'เวลาที่เสนอ']);
+    var status = '';
+    var date = '';
+    var fullname;
+    for(var i = 0; i< length;i++) {
+      if(!list[i].status){
+        status = 'ยังไม่อนุมัติ';
+      } else{
+        status = 'อนุมัติ';
+      }
+      fullname = list[i].re_name;
+      date = (Date(list[i].createdAt)).substring(0,24);
+      console.log(date);
+      rows.push([+list[i].id,fullname, status,date]);
+    }
+
+
+    var documentDefinition = {
+      content: {
+        table: {
+                widths: ['*',200, '*', 'auto'],
+                body: rows
+            }
+      },
+      defaultStyle: {
+        font: 'THSarabunNew'
+      }
+    };
+    const pdfDoc = await pdfMake.createPdf(documentDefinition);
+    pdfDoc.getBase64((data) => {
+      res.writeHead(200,
+        {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': 'attachment;filename="returns.pdf"'
+        });
+  
+      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+      res.end(download);
+    });
+  } catch (e){
+    console.log(e);
+  }
+};

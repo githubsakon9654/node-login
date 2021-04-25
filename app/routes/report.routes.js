@@ -10,4 +10,5 @@ module.exports = function(app){
     app.get('/api/report/revealdetail/:id',controller.revealDetail);
     app.get('/api/report/buylist',controller.buylist);
     app.get('/api/report/buyform/:id',controller.buyform);
+    app.get('/api/report/return',controller.returns);
 };

@@ -32,8 +32,13 @@ db.buyform = require("./buyform.model.js")(sequelize, Sequelize);
 db.reveal = require("./reveal.model.js")(sequelize, Sequelize);
 db.durable = require("./durable.model.js")(sequelize, Sequelize);
 db.borrow = require("./borrow.model.js")(sequelize, Sequelize);
+db.returns = require('./return.model.js')(sequelize, Sequelize);
 
 
+db.user.hasMany(db.returns, {as: 'returns'});
+db.returns.belongsTo(db.user, {
+  foreignKey: "userId", as: 'users'
+});
 db.user.hasMany(db.offer, {as: "offers"});
 db.offer.belongsTo(db.user, {
   foreignKey: "userId", as: "users"
@@ -53,6 +58,17 @@ db.durable.belongsTo(db.user, {
 db.user.hasMany(db.borrow, {as: "borrows"});
 db.borrow.belongsTo(db.user, {
   foreignKey: "userId", as: "users"
+});
+
+db.returns.belongsToMany(db.durable,{
+  through: "re_du",
+  foreignKey: "returnId",
+  otherKey: "duId"
+});
+db.durable.belongsToMany(db.returns,{
+  through: "re_du",
+  foreignKey: "duId",
+  otherKey: "returnId"
 });
 
 db.borrow.belongsToMany(db.durable,{

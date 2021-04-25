@@ -32,6 +32,7 @@ require('./app/routes/reveal.routes')(app);
 require('./app/routes/durable.routes')(app);
 require('./app/routes/borrow.routes')(app);
 require('./app/routes/report.routes')(app);
+require('./app/routes/returns.routes')(app);
 
 
 const PORT = process.env.PORT || 8080;
