@@ -6,7 +6,11 @@ const Op = db.Sequelize.Op;
 exports.listAll_supplie = async (req, res) => {
     try{
         const supplies = await Supplie.findAll();
-        res.json({supplies: supplies});
+        console.log(supplies[0].id);
+        res.json({
+            supplies: supplies,
+            test: supplies[0].id
+        });
     } catch (e) {
         res.status(403).json({
             message: e
