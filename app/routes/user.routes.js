@@ -12,6 +12,7 @@ module.exports = function(app) {
 
   app.get("/api/user/all",controller.allAccess);
   app.post("/api/user/finduser",controller.findUser);
+  app.post("/api/user/findid",controller.findUserById);
   app.post('/api/user/update',controller.update_user);
   app.post('/api/user/delete', controller.deleteUser);
   app.post('/api/user/repass',controller.changePass);

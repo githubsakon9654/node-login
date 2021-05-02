@@ -15,6 +15,21 @@ exports.listAll_durable = async(req,res) => {
     }
 };
 
+exports.listUser_durable = async(req,res) => {
+    try{
+        const durables = await Durable.findAll({
+            where: {
+                userId: req.body.id
+            }
+        });
+        res.json({durable: durables});
+    } catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+};
+
 exports.createDurable = async (req,res) => {
     try{
         const durable = await Durable.create({...req.body});

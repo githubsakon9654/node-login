@@ -30,6 +30,21 @@ exports.findUser = async (req, res) => {
   }
 };
 
+exports.findUserById = async (req, res) => {
+  try{
+    const user = await User.findOne({
+      where: {
+        id: req.body.id
+      }
+    });
+    res.json({user: user});
+  } catch (e){
+    res.status(403).json({
+      message: e
+    });
+  }
+};
+
 exports.update_user = async (req,res) => {
   try{
     const user = await User.update({...req.body},{where: {id:req.body.id}});
