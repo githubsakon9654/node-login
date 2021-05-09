@@ -50,7 +50,7 @@ exports.supplieList = async (req, res, next) => {
       ]
     },
     content: [
-      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
       {text: 'รายการพัสดุที่อยู่ในคลัง',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
       {
         table: {
@@ -126,7 +126,7 @@ exports.durableList = async (req, res, next) => {
       ]
     },
     content: [
-      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
       {text: 'รายการครุภัณฑ์ที่อยู่ในคลัง',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
       {
       table: {
@@ -297,7 +297,101 @@ exports.borrowList = async (req, res, next) => {
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
+        {text: 'รายการยืมครุภัณฑ์ที่อยู่ในคลัง',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        {
+          table: {
+                  
+                  widths: ['auto',100, '*','*', 'auto'],
+                  body: rows
+          },
+          layout: {
+            fillColor: function (rowIndex, node, columnIndex) {
+              return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+            }
+          }
+        }
+      ],
+      styles: {
+        fillheader:{
+          fontSize:18,
+          bold:true,
+          fillColor: '#60BF6A'
+        }
+      },
+      defaultStyle: {
+        font: 'THSarabunNew',
+        fontSize:14
+      }
+    };
+    const pdfDoc = await pdfMake.createPdf(documentDefinition);
+    pdfDoc.getBase64((data) => {
+      res.writeHead(200,
+        {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': 'attachment;filename="borrowlist.pdf"'
+        });
+  
+      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+      res.end(download);
+    });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+exports.borrowListByUser = async (req, res, next) => {
+  try{
+    var {id} = req.params;
+    console.log(id);
+    const list = await sequelize.query(
+      `SELECT db.id,db.admin_approve,db.dire_approvev,users.fullname,db.createdAt FROM borrows AS db 
+      LEFT JOIN users ON db.userId = users.id
+      WHERE db.userId = ${id}`,
+      {
+        nest: true,
+        type: QueryTypes.SELECT
+      }
+    );
+    var length = list.length;
+    var rows = [];
+    rows.push([
+    {text: 'No.',style:'fillheader'},{text:  'ชื่อผู้ยืมครุภัณฑ์',style:'fillheader'},
+    {text:  'เจ้าหน้าที่อนุมัติ', style:'fillheader'},{text:  'ผู้อำนวยการที่อนุมัติ', style:'fillheader'} , 
+    {text:  'เวลาที่ขอยืม',style:'fillheader'}
+    ]);
+    var date = '';
+    var adstatus = '';
+    var distatus = '';
+    var fullname;
+    for(var i = 0; i< length;i++) {
+      if(!list[i].dire_approvev){
+        distatus = 'ยังไม่อนุมัติ';
+      } else{
+        distatus = 'อนุมัติ';
+      }
+      if(!list[i].admin_approve){
+        adstatus = 'ยังไม่อนุมัติ';
+      } else{
+        adstatus = 'อนุมัติ';
+      }
+      fullname = list[i].fullname;
+      date = (Date(list[i].createdAt)).substring(0,24);
+      console.log(date);
+      rows.push([+list[i].id,fullname,adstatus, distatus,date]);
+    }
+
+
+    var documentDefinition = {
+      pageSize: 'A4',
+      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      footer: {
+        columns: [
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+        ]
+      },
+      content: [
+        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
         {text: 'รายการยืมครุภัณฑ์ที่อยู่ในคลัง',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
         {
           table: {
@@ -388,7 +482,7 @@ exports.revealList = async (req, res, next) => {
       ]
     },
     content: [
-      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
       {text: 'รายการการเบิกพัสดุ',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
       {
         table: {
@@ -575,7 +669,7 @@ exports.revealDetail = async (req, res, next) => {
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
         {text: 'รายการพัสดุที่ขอเบิกของ ' + name +' ครูประจำชั้น '+ classes,style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
         {
           table: {
@@ -659,7 +753,7 @@ exports.buylist = async (req, res, next) => {
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
         {text: 'รายการการสั่งซื้อพัสดุ',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
         {
           table: {
@@ -752,7 +846,7 @@ exports.buyform = async (req, res, next) => {
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
         {text: 'รายการสั่งซื้อพัสดุของ ' + name +' ครูประจำชั้น '+ classes,style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
         {
           table: {
@@ -837,7 +931,7 @@ exports.returns = async (req, res, next) => {
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
         {text: 'รายการการคืนครุภัณฑ์',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
         {
           table: {
@@ -878,6 +972,7 @@ exports.returns = async (req, res, next) => {
     console.log(e);
   }
 };
+
 exports.returnsAll = async (req, res, next) => {
   try{
     const {id} = req.params;
@@ -920,7 +1015,7 @@ exports.returnsAll = async (req, res, next) => {
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
         {text: 'รายการการคืนครุภัณฑ์',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
         {
           table: {
@@ -978,7 +1073,6 @@ exports.returnDetail = async (req, res, next) => {
           type: QueryTypes.SELECT
       }
   );
-    console.log(req.params + 'dddd');
     var length = list.length;
     var rows = [];
     var name = list[0].fullname;
@@ -999,7 +1093,7 @@ exports.returnDetail = async (req, res, next) => {
       date = (Date(list[i].createdAt)).substring(0,24);
       fullname = list[i].fullname;
       console.log(date);
-      rows.push([+list[i].id,list[i].du_name,+list[i].du_status, list[i].du_serial]);
+      rows.push([+list[i].id,list[i].du_name,list[i].du_status, list[i].du_serial]);
       unit = unit +list[i].unit;
     }
     var documentDefinition = {
@@ -1011,7 +1105,7 @@ exports.returnDetail = async (req, res, next) => {
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
+        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
         {text: 'รายการคืนครุภัณฑ์ของ ' + name +' ครูประจำชั้น '+ classes,style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
         {
           table: {

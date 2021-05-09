@@ -5,6 +5,7 @@ module.exports = function(app){
     app.get('/api/report/durablelist',controller.durableList);
     app.get('/api/report/offerlist',controller.offerList);
     app.get('/api/report/borrowlist',controller.borrowList);
+    app.get('/api/report/borrowlist/:id',controller.borrowListByUser);
     app.get('/api/report/reveallist',controller.revealList);
     app.get('/api/report/revealuser/:id',controller.revealByUser);
     app.get('/api/report/revealdetail/:id',controller.revealDetail);
