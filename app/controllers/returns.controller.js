@@ -8,7 +8,16 @@ const { sequelize} = require("../models");
 
 exports.returns_Alllist = async(req,res) => {
     try{
-        const returns = await Returns.findAll();
+        // const returns = await Returns.findAll();
+        const returns = await sequelize.query(
+            `
+            SELECT id,re_name,status,SUBSTRING(createdAt, 1, 10) AS Date FROM returns
+            `,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        )
         res.json({
             returns: returns
         });
@@ -21,11 +30,21 @@ exports.returns_Alllist = async(req,res) => {
 
 exports.return_user_list = async(req,res)=>{
     try{
-        const returns = await Returns.findAll({
-            where: {
-                userId: req.body.userId
+        // const returns = await Returns.findAll({
+        //     where: {
+        //         userId: req.body.userId
+        //     }
+        // });
+        const returns = await sequelize.query(
+            `
+            SELECT id,re_name,status,SUBSTRING(createdAt, 1, 10) AS Date FROM returns
+            WHERE userId = ${req.body.userId}
+            `,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
             }
-        });
+        )
         res.json({
             returns: returns
         });

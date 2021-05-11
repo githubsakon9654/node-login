@@ -8,7 +8,16 @@ var appove = false;
 
 exports.getAll_offer = async (req, res) => {
     try{
-        const offers = await Offer.findAll();
+        // const offers = await Offer.findAll();
+        const offers = await sequelize.query(
+          `
+          SELECT id,offer_name,offer_status,SUBSTRING(createdAt, 1, 10) AS Date FROM offers
+          `,
+          {
+              nest: true,
+              type: QueryTypes.SELECT
+          }
+        )
         res.json({offers:  offers});
     } catch (e) {
         res.status(403).json({

@@ -7,7 +7,15 @@ const { sequelize } = require("../models");
 
 exports.buyList = async (req, res) => {
     try{
-        const buy = await Buyform.findAll();
+        // const buy = await Buyform.findAll();
+        const buy = await sequelize.query(
+            `
+            SELECT id,status,buyprice,SUBSTRING(createdAt, 1, 10) AS Date FROM buyforms
+            `,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
+            })
         res.json({buyform: buy});
     } catch (e) {
         res.status(403).json({

@@ -29,11 +29,22 @@ exports.listAll_durable = async(req,res) => {
 
 exports.listUser_durable = async(req,res) => {
     try{
-        const durables = await Durable.findAll({
-            where: {
-                userId: req.body.id
+        // const durables = await Durable.findAll({
+        //     where: {
+        //         userId: req.body.id
+        //     }
+        // });
+        const durables = await sequelize.query(
+            `
+            SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,db.userId FROM durables AS db
+            INNER JOIN users ON users.id = db.userId
+            WHERE db.userId = ${req.body.id}
+            `,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
             }
-        });
+        )
         res.json({durable: durables});
     } catch (e) {
         res.status(403).json({
