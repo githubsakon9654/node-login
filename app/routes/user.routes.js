@@ -17,4 +17,5 @@ module.exports = function(app) {
   app.post('/api/user/delete', controller.deleteUser);
   app.post('/api/user/repass',controller.changePass);
   app.post('/api/user/reset',controller.defaultPass);
+  app.post('/api/user/check',controller.checkPass);
 };

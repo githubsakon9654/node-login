@@ -1,7 +1,7 @@
 const db = require("../models");
 const User = db.user;
 const { sequelize } = require("../models");
-
+const { QueryTypes } = require('sequelize');
 var bcrypt = require("bcryptjs");
 
 exports.allAccess = async(req, res) => {
@@ -93,24 +93,48 @@ exports.defaultPass = async (req, res) => {
 };
 
 exports.changePass = (req, res) => {
-  User.findOne({
+   const pass = User.findOne({
     where: {
       id: req.body.id
     }
   }).then(user => {
-    console.log('yes');
       var passwordIsValid = bcrypt.compareSync(
         req.body.password,
         user.password
       );
-      console.log('yes');
+
       if (passwordIsValid) {
         user.update({
           password: bcrypt.hashSync(req.body.newpassword, 8)
         });
-        res.send({message: 'yes'});
+        res.json({
+          pass: true
+        })
+      } else{
+        res.json({
+          pass: false
+        })
+
       }
   }).catch(err => {
       res.status(500).send({ message: err.message });
   });
+};
+
+exports.checkPass = async (req, res) => {
+  try{
+    const pass = await sequelize.query(
+      `SELECT password FROM users WHERE id = ${req.body.id}`, 
+      {
+        type: QueryTypes.SELECT
+      }
+    )
+    var passwordIsValid = bcrypt.compareSync(pass.password,pass.password)
+    console.log(pass)
+    res.json({
+      pass:pass
+    })
+  } catch (err) {
+      res.status(500).send({ message: err.message });
+  }
 };

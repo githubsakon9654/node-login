@@ -63,7 +63,13 @@ exports.updateSupplie = async(req,res) => {
 
 exports.deleteSuppie = async (req, res) => {
     try{
-        const supplie = await sequelize.query(`DELETE FROM supplies WHERE id = ${req.body.id}`);
+        const supplie = await Supplie.update(
+            {unit:0},{
+                where:{
+                    id: req.body.id
+                }
+            }
+        )
         res.json({
             message: `supplile of deleted is ${supplie? true:false}`
         });

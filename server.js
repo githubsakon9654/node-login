@@ -10,6 +10,7 @@ var corsOptions = {
 
 const db = require('./app/models');
 const Role = db.role;
+const Cate = db.ducate;
 
 // db.sequelize.sync({force: true}).then(() => {
 //     console.log('Drop and Resync Db');
@@ -33,6 +34,8 @@ require('./app/routes/durable.routes')(app);
 require('./app/routes/borrow.routes')(app);
 require('./app/routes/report.routes')(app);
 require('./app/routes/returns.routes')(app);
+require('./app/routes/ducate.routes')(app);
+require('./app/routes/repair.routes')(app);
 
 
 const PORT = process.env.PORT || 8080;
@@ -51,4 +54,20 @@ function initial() {
     Role.create({
         name: 'admin'
     });
+    Cate.create({
+        name: 'โต๊ะ',
+        serial: 'TB'
+    })
+    Cate.create({
+        name: 'ตู้',
+        serial: 'CS'
+    })
+    Cate.create({
+        name: 'เก้าอี้',
+        serial: 'CH'
+    })
+    Cate.create({
+        name: 'อื่นๆ',
+        serial: 'OH'
+    })
 }

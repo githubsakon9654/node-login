@@ -8,9 +8,16 @@ const { sequelize, buyform, durable } = require("../models");
 
 exports.list_all = async (req, res)=>{
     try{
-        const borrow = await Borrow.findAll();
+        // const borrow = await Borrow.findAll();
+        const borrow = await sequelize.query(
+            `SELECT id,borrow_name,admin_approve,dire_approvev,SUBSTRING(createdAt, 1, 10) AS Date,accept FROM borrows`,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        )
         res.json({
-            borrow: borrow
+            borrow:borrow
         });
     } catch (e){
         res.status(403).json({
@@ -21,11 +28,19 @@ exports.list_all = async (req, res)=>{
 
 exports.list_user = async (req, res)=> {
     try{
-        const borrow = await Borrow.findAll({
-            where: {
-                userId: req.body.userId
+        // const borrow = await Borrow.findAll({
+        //     where: {
+        //         userId: req.body.userId
+        //     }
+        // });
+        const borrow = await sequelize.query(
+            `SELECT id,borrow_name,admin_approve,dire_approvev,SUBSTRING(createdAt, 1, 10) AS Date,accept FROM borrows
+            WHERE userId = ${req.body.userId}`,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
             }
-        });
+        )
         res.json({
             borrow: borrow
         });
@@ -43,7 +58,8 @@ exports.borrow_insert = async (req, res) => {
                 admin_approve: false,
                 dire_approvev: false,
                 userId: req.body.userId,
-                borrow_name: req.body.borrow_name
+                borrow_name: req.body.name,
+                accept: false
             }
         ).then( borrow => {
             if(req.body.durable){
@@ -82,7 +98,7 @@ exports.borrow_detail = async (req,res) => {
             }
         );
         const appove = await Borrow.findAll({
-            attributes: ['admin_approve', 'dire_approvev'],
+            attributes: ['admin_approve', 'dire_approvev','accept'],
             where: {id: req.body.id}
         });
         res.json({
@@ -126,6 +142,19 @@ exports.update_appove = async (req, res) => {
         res.json({
             update: update,
             appove:appove
+        });
+    } catch (e){
+        res.status(403).json({
+            message:e
+        });
+    }
+};
+
+exports.update = async(req,res) => {
+    try{
+        const update = await Borrow.update({...req.body},{where: {id:req.body.id}});
+        res.json({
+            update: update
         });
     } catch (e){
         res.status(403).json({

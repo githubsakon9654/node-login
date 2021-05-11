@@ -7,7 +7,17 @@ const { sequelize, buyform } = require("../models");
 
 exports.reveal_list_all = async (req, res) => {
     try{
-        const reveals = await Reveal.findAll();
+        // const reveals = await Reveal.findAll();
+        const reveals = await sequelize.query(
+            `
+            SELECT rl.id,rl.admin_approve,rl.dire_approvev,rl.total_price,SUBSTRING(rl.createdAt, 1, 10) AS Date,us.fullname,rl.accept FROM reveals as rl
+            LEFT JOIN users AS us ON rl.userId = us.id
+            `,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        )
         res.json({
             reveal: reveals
         });
@@ -20,11 +30,22 @@ exports.reveal_list_all = async (req, res) => {
 
 exports.reveal_list_user = async (req, res) => {
     try{
-        const reveal = await Reveal.findAll({
-            where: {
-                userId: req.body.userId
+        // const reveal = await Reveal.findAll({
+        //     where: {
+        //         userId: req.body.userId
+        //     }
+        // });
+        const reveal = await sequelize.query(
+            `
+            SELECT rl.id,rl.admin_approve,rl.dire_approvev,rl.total_price,SUBSTRING(rl.createdAt, 1, 10) AS Date,us.fullname,rl.accept FROM reveals as rl
+            LEFT JOIN users AS us ON rl.userId = us.id
+            WHERE rl.userId = ${req.body.userId}
+            `,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
             }
-        });
+        )
         res.json({
             reveal: reveal
         });
@@ -41,7 +62,8 @@ exports.insert_reveal_sup = (req, res) =>{
             admin_approve: false,
             dire_approvev: false,
             total_price: req.body.total_price,
-            userId: req.body.userId
+            userId: req.body.userId,
+            accept:false
         }
     ).then( reveal => {
         if(req.body.supplie){
@@ -91,7 +113,7 @@ exports.get_detail_reveal = async (req, res) => {
         }
     );
     const appove = await Reveal.findAll({
-        attributes: ['admin_approve', 'dire_approvev'],
+        attributes: ['admin_approve', 'dire_approvev','accept'],
         where: {id: req.body.id}
     });
     res.json({
@@ -103,6 +125,7 @@ exports.get_detail_reveal = async (req, res) => {
 exports.update_appove = async (req, res) => {
     try{
         const update = await Reveal.update({...req.body},{where: {id:req.body.id}});
+        console.log('update')
         res.json({
             update: update
         });

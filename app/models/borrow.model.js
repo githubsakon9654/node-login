@@ -14,6 +14,9 @@ module.exports = (sequelize, Sequelize) => {
         dire_approvev: {
             type: Sequelize.BOOLEAN
         },
+        accept: {
+            type: Sequelize.BOOLEAN
+        }
     });
     return borrow;
 };

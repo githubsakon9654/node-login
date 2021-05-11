@@ -33,7 +33,18 @@ db.reveal = require("./reveal.model.js")(sequelize, Sequelize);
 db.durable = require("./durable.model.js")(sequelize, Sequelize);
 db.borrow = require("./borrow.model.js")(sequelize, Sequelize);
 db.returns = require('./return.model.js')(sequelize, Sequelize);
+db.repair = require('./repair.model.js')(sequelize,Sequelize);
+db.ducate = require('./ducate.model.js')(sequelize,Sequelize);
 
+db.durable.hasMany(db.repair,{as:'repairs'});
+db.repair.belongsTo(db.durable,{
+  foreignKey: 'durableId', as: 'durables'
+})
+
+db.ducate.hasMany(db.durable,{as:'durables'});
+db.durable.belongsTo(db.ducate,{
+  foreignKey: 'ducateId', as: 'ducates'
+})
 
 db.user.hasMany(db.returns, {as: 'returns'});
 db.returns.belongsTo(db.user, {

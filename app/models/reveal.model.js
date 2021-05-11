@@ -13,6 +13,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         total_price: {
             type: Sequelize.INTEGER
+        },
+        accept: {
+            type: Sequelize.BOOLEAN
         }
     });
     return reveal;

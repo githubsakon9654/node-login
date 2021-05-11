@@ -95,6 +95,59 @@ exports.get_datail_offer = async (req, res) => {
   });
 };
 
+exports.getAll_unitOfSup = async (req,res) =>{
+  const offer = await sequelize.query(
+    `
+    SELECT offers.id,sup.supplie_name,sup.price,sup.unit_name,
+    os.unit,users.fullname,users.classes, os.supplieId FROM offers
+    INNER JOIN offer_sup AS os ON offers.id = os.offerId
+    INNER JOIN users ON users.id = offers.userId
+    INNER JOIN supplies AS sup ON os.supplieId = sup.id
+    `,
+    {
+      nest: true,
+      type: QueryTypes.SELECT
+    }
+  );
+  var length = offer.length;
+  var arr = []
+  for(var i=0 ; i<length; i++){
+    var supname = offer[i].supplieId
+    console.log(supname)
+    if(i != 0){
+      var t = i-1
+      var prename = offer[t].supplieId
+      console.log(prename)
+      if(supname == prename){
+        offer[i].unit = (+offer[t].unit) + (+offer[i].unit)
+        offer[t].unit = offer[i].unit
+        arr.push({
+          id:offer[i].supplieId,
+          supname:offer[i].supplie_name,
+          unit:offer[i].unit
+        })
+        console.log('unit' + offer[i].unit)
+        console.log('unit' + offer[t].unit)
+      }
+    }
+  }
+
+  res.json({
+    offer: arr
+  });
+}
+
+exports.clear_all = async (req,res) => {
+  const offer = await sequelize.query(
+    `
+    DELETE FROM offers
+    `
+  )
+  res.json({
+    offer:offer
+  })
+}
+
 exports.update_appove = async (req, res) => {
   try{
       const update = await Offer.update({...req.body},{where: {id:req.body.id}});
