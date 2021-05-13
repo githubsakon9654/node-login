@@ -34,18 +34,21 @@ db.durable = require("./durable.model.js")(sequelize, Sequelize);
 db.borrow = require("./borrow.model.js")(sequelize, Sequelize);
 db.returns = require('./return.model.js')(sequelize, Sequelize);
 db.repair = require('./repair.model.js')(sequelize,Sequelize);
-db.ducate = require('./ducate.model.js')(sequelize,Sequelize);
+db.supYear = require('./supplie_unit_year.model.js')(sequelize,Sequelize);
+db.budget = require('./budget.model.js')(sequelize,Sequelize);
 
+db.supplie.hasMany(db.supYear, {as: 'supYear'})
+db.supYear.belongsTo(db.supplie,{
+  foreignKey: 'supplieId', as: 'supplies'
+});
 db.durable.hasMany(db.repair,{as:'repairs'});
 db.repair.belongsTo(db.durable,{
   foreignKey: 'durableId', as: 'durables'
-})
-
-db.ducate.hasMany(db.durable,{as:'durables'});
-db.durable.belongsTo(db.ducate,{
-  foreignKey: 'ducateId', as: 'ducates'
-})
-
+});
+db.user.hasMany(db.budget, {as: 'budgets'});
+db.budget.belongsTo(db.user, {
+  foreignKey: 'userId', as: 'users'
+});
 db.user.hasMany(db.returns, {as: 'returns'});
 db.returns.belongsTo(db.user, {
   foreignKey: "userId", as: 'users'

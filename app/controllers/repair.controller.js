@@ -10,6 +10,7 @@ exports.get_All = async (req, res) =>{
         const repairs = await sequelize.query(
             `
             SELECT id,rep_name,rep_detail,rep_price,SUBSTRING(createdAt, 1, 10) AS Date FROM repairs
+            WHERE durableId = ${req.body.duId}
             `,
             {
                 nest: true,

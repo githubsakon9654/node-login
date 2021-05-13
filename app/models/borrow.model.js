@@ -1,12 +1,12 @@
 module.exports = (sequelize, Sequelize) => {
     const borrow = sequelize.define('borrow' ,{
         id: {
-            type: Sequelize.INTEGER,
+            type: Sequelize.INTEGER(4),
             primaryKey: true,
             autoIncrement: true
         },
         borrow_name: {
-            type: Sequelize.STRING
+            type: Sequelize.STRING(55)
         },
         admin_approve: {
             type: Sequelize.BOOLEAN

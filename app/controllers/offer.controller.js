@@ -104,46 +104,50 @@ exports.get_datail_offer = async (req, res) => {
   });
 };
 
-exports.getAll_unitOfSup = async (req,res) =>{
-  const offer = await sequelize.query(
+exports.getAll_unitOfSup = (req,res) =>{
+  
+  
+  const offer = sequelize.query(
     `
-    SELECT offers.id,sup.supplie_name,sup.price,sup.unit_name,
-    os.unit,users.fullname,users.classes, os.supplieId FROM offers
+    SELECT DISTINCT sup.id FROM offers
     INNER JOIN offer_sup AS os ON offers.id = os.offerId
-    INNER JOIN users ON users.id = offers.userId
     INNER JOIN supplies AS sup ON os.supplieId = sup.id
+    ORDER BY os.supplieId
     `,
     {
       nest: true,
       type: QueryTypes.SELECT
     }
-  );
-  var length = offer.length;
-  var arr = []
-  for(var i=0 ; i<length; i++){
-    var supname = offer[i].supplieId
-    console.log(supname)
-    if(i != 0){
-      var t = i-1
-      var prename = offer[t].supplieId
-      console.log(prename)
-      if(supname == prename){
-        offer[i].unit = (+offer[t].unit) + (+offer[i].unit)
-        offer[t].unit = offer[i].unit
-        arr.push({
-          id:offer[i].supplieId,
-          supname:offer[i].supplie_name,
-          unit:offer[i].unit
-        })
-        console.log('unit' + offer[i].unit)
-        console.log('unit' + offer[t].unit)
-      }
-    }
-  }
+  ).then( async offer => {
+    var len = offer.length
+    var arr = []
+    for(var i =0 ;i<len;i++){
+      // console.log(offer[i].id + ' 1')
+      const unit = await sequelize.query(
+      `
+      SELECT os.supplieId, sup.supplie_name, SUM(os.unit) AS unit,sup.unit_name FROM offer_sup AS os
+      INNER JOIN supplies AS sup ON os.supplieId = sup.id
+      WHERE os.supplieId = ${offer[i].id}
+      ORDER BY os.supplieId
+      `,
+        {
+          nest: true,
+          type: QueryTypes.SELECT
+        }
+      ).then( unit => {
+        console.log(unit[0])
+        arr.push(unit[0])
+      })
 
-  res.json({
-    offer: arr
-  });
+    }
+    res.json({
+      offer: arr
+    })
+  })
+  // res.json({
+  //   offer: 'd'
+  // })
+
 }
 
 exports.clear_all = async (req,res) => {
