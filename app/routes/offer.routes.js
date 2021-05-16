@@ -9,4 +9,6 @@ module.exports = function(app) {
     app.get("/api/offer/listUnit", controller.getAll_unitOfSup);
     app.post('/api/offer/detail',controller.get_datail_offer);
     app.post('/api/offer/update',controller.update_appove);
+    app.post('/api/offer/budget',controller.getBudget);
+    app.post('/api/offer/upbudget',controller.updateBudget);
 };

@@ -6,16 +6,13 @@ module.exports = ( sequelize , Sequelize) => {
             autoIncrement: true
         },
         supplie_name: {
-            type: Sequelize.STRING
+            type: Sequelize.STRING(25)
         },
         price: {
-            type: Sequelize.INTEGER
-        },
-        unit: {
-            type: Sequelize.INTEGER
+            type: Sequelize.INTEGER(4)
         },
         unit_name: {
-            type: Sequelize.STRING
+            type: Sequelize.STRING(15)
         }
     });
     return supplie;

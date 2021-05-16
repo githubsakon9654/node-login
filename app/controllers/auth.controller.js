@@ -2,7 +2,7 @@ const db = require("../models");
 const config = require("../config/auth.config");
 const User = db.user;
 const Role = db.role;
-
+const Budget = db.budget;
 const Op = db.Sequelize.Op;
 
 var jwt = require("jsonwebtoken");
@@ -13,10 +13,10 @@ exports.signup = (req, res) => {
   User.create({
     username: req.body.username,
     fullname: req.body.fullname,
-    price: req.body.price,
     classes: req.body.classes,
     password: bcrypt.hashSync(req.body.password, 8)
   }).then(user => {
+
       if (req.body.roles) {
         Role.findAll({
           where: {

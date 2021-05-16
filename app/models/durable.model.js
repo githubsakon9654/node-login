@@ -1,5 +1,3 @@
-const { DATEONLY } = require("sequelize/types");
-
 module.exports = (sequelize, Sequelize) => {
     const durable = sequelize.define('durable',{
         id: {
@@ -15,6 +13,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         du_serial: {
             type: Sequelize.STRING(55)
+        },
+        proven: {
+            type: Sequelize.STRING(25)
         },
         du_price: {
             type: Sequelize.INTEGER(4)

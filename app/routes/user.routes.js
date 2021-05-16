@@ -10,7 +10,7 @@ module.exports = function(app) {
     next();
   });
 
-  app.get("/api/user/all",controller.allAccess);
+  app.post("/api/user/all",controller.allAccess);
   app.post("/api/user/finduser",controller.findUser);
   app.post("/api/user/findid",controller.findUserById);
   app.post('/api/user/update',controller.update_user);
@@ -18,4 +18,6 @@ module.exports = function(app) {
   app.post('/api/user/repass',controller.changePass);
   app.post('/api/user/reset',controller.defaultPass);
   app.post('/api/user/check',controller.checkPass);
+  app.post('/api/user/budgetInsert',controller.insert_budget);
+  app.post('/api/user/budget',controller.getbudget);
 };

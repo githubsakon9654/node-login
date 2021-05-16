@@ -8,11 +8,20 @@ module.exports = (sequelize, Sequelize) => {
         status: {
             type: Sequelize.BOOLEAN
         },
+        repel: {
+            type: Sequelize.BOOLEAN
+        },
+        accept: {
+            type: Sequelize.BOOLEAN
+        },
         buyprice: {
             type: Sequelize.INTEGER(4)
         },
         store: {
-            type: Sequelize.STRING(25)
+            type: Sequelize.TEXT(100)
+        },
+        name: {
+            type: Sequelize.STRING(55)
         }
         
     });

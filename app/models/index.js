@@ -34,20 +34,38 @@ db.durable = require("./durable.model.js")(sequelize, Sequelize);
 db.borrow = require("./borrow.model.js")(sequelize, Sequelize);
 db.returns = require('./return.model.js')(sequelize, Sequelize);
 db.repair = require('./repair.model.js')(sequelize,Sequelize);
-db.supYear = require('./supplie_unit_year.model.js')(sequelize,Sequelize);
-db.budget = require('./budget.model.js')(sequelize,Sequelize);
+db.supplie_year = require('./supplie_year.model.js')(sequelize,Sequelize);
+db.budget = require('./budget.model.js')(sequelize, Sequelize);
+db.store = require('./store.model.js')(sequelize,Sequelize);
+db.year_unit = require('./year_unit.model.js')(sequelize,Sequelize);
 
-db.supplie.hasMany(db.supYear, {as: 'supYear'})
-db.supYear.belongsTo(db.supplie,{
+
+
+db.store.hasMany(db.buyform ,{as: 'buyforms'});
+db.buyform.belongsTo(db.store,{
+  foreignKey: 'storeId', as: 'stores'
+});
+db.store.hasMany(db.supplie ,{as: 'supplies'});
+db.supplie.belongsTo(db.store,{
+  foreignKey: 'storeId', as: 'stores'
+});
+
+db.user.hasMany(db.budget, {as: 'budgets'});
+db.budget.belongsTo(db.user,{
+  foreignKey: 'userId', as: 'users'
+});
+db.supplie.hasMany(db.supplie_year, {as: 'suppile_year'});
+db.supplie_year.belongsTo(db.supplie,{
   foreignKey: 'supplieId', as: 'supplies'
 });
+db.supplie_year.hasMany(db.year_unit, {as: 'year_units'});
+db.year_unit.belongsTo(db.year_unit ,{
+  foreignKey: 'supplieYearId', as: 'supplie_years'
+})
+
 db.durable.hasMany(db.repair,{as:'repairs'});
 db.repair.belongsTo(db.durable,{
   foreignKey: 'durableId', as: 'durables'
-});
-db.user.hasMany(db.budget, {as: 'budgets'});
-db.budget.belongsTo(db.user, {
-  foreignKey: 'userId', as: 'users'
 });
 db.user.hasMany(db.returns, {as: 'returns'});
 db.returns.belongsTo(db.user, {

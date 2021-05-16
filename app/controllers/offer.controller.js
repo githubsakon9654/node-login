@@ -2,39 +2,41 @@ const db = require("../models");
 const Offer = db.offer;
 const Op = db.Sequelize.Op;
 const Supplie = db.supplie;
+const Budget = db.budget;
 const { QueryTypes } = require('sequelize');
 const { sequelize } = require("../models");
 var appove = false;
 
 exports.getAll_offer = async (req, res) => {
-    try{
-        // const offers = await Offer.findAll();
-        const offers = await sequelize.query(
-          `
-          SELECT id,offer_name,offer_status,SUBSTRING(createdAt, 1, 10) AS Date FROM offers
+  try {
+    // const offers = await Offer.findAll();
+    const offers = await sequelize.query(
+      `
+          SELECT id,offer_name,offer_status,SUBSTRING(createdAt, 1, 10) AS Date,price FROM offers
           `,
-          {
-              nest: true,
-              type: QueryTypes.SELECT
-          }
-        )
-        res.json({offers:  offers});
-    } catch (e) {
-        res.status(403).json({
-            message: e
-        });
-    }
+      {
+        nest: true,
+        type: QueryTypes.SELECT
+      }
+    )
+    res.json({ offers: offers });
+  } catch (e) {
+    res.status(403).json({
+      message: e
+    });
+  }
 };
 
-exports.insert_off_sup = (req, res) =>{
+exports.insert_off_sup = (req, res) => {
   Offer.create(
     {
       offer_name: req.body.offer_name,
       offer_status: false,
-      userId: req.body.userId
+      userId: req.body.userId,
+      price: req.body.price
     }
-  ).then( offer => {
-    if(req.body.supplie){
+  ).then(offer => {
+    if (req.body.supplie) {
       Supplie.findAll({
         where: {
           id: {
@@ -44,34 +46,34 @@ exports.insert_off_sup = (req, res) =>{
       }).then(sup => {
         const id = offer.id;
         const length = req.body.supplie.length;
-        offer.setSupplies(sup).then(()=>{
-          for(i=0;i< length; i++){
+        offer.setSupplies(sup).then(() => {
+          for (i = 0; i < length; i++) {
             sequelize.query(
               `UPDATE offer_sup SET unit=${req.body.units[i]}
               WHERE offerId=${id} AND supplieId=${req.body.supplie[i]}`,
               {
-                  nest: true,
-                  type: QueryTypes.UPDATE
+                nest: true,
+                type: QueryTypes.UPDATE
               }
             );
           }
-          res.send({message: 'insert offer compelete'});
+          res.send({ message: 'insert offer compelete' });
         });
       });
-    } else{
-      res.send({ message: 'insert offer fail'});
+    } else {
+      res.send({ message: 'insert offer fail' });
     }
   });
 };
 
 exports.offer_appove = async (req, res) => {
-  try{
-      appove = req.body.appove;
-      res.json({
-        appove: req.body.appove
-      });
-  } catch (e){  
-    
+  try {
+    appove = req.body.appove;
+    res.json({
+      appove: req.body.appove
+    });
+  } catch (e) {
+
   }
 };
 
@@ -96,7 +98,7 @@ exports.get_datail_offer = async (req, res) => {
   );
   const appove = await Offer.findAll({
     attributes: ['offer_status'],
-    where: {id: req.body.id}
+    where: { id: req.body.id }
   });
   res.json({
     offer: offer,
@@ -104,9 +106,9 @@ exports.get_datail_offer = async (req, res) => {
   });
 };
 
-exports.getAll_unitOfSup = (req,res) =>{
-  
-  
+exports.getAll_unitOfSup = (req, res) => {
+
+
   const offer = sequelize.query(
     `
     SELECT DISTINCT sup.id FROM offers
@@ -118,14 +120,14 @@ exports.getAll_unitOfSup = (req,res) =>{
       nest: true,
       type: QueryTypes.SELECT
     }
-  ).then( async offer => {
+  ).then(async offer => {
     var len = offer.length
     var arr = []
-    for(var i =0 ;i<len;i++){
+    for (var i = 0; i < len; i++) {
       // console.log(offer[i].id + ' 1')
       const unit = await sequelize.query(
-      `
-      SELECT os.supplieId, sup.supplie_name, SUM(os.unit) AS unit,sup.unit_name FROM offer_sup AS os
+        `
+      SELECT os.supplieId, sup.supplie_name, SUM(os.unit) AS unit,sup.unit_name,sup.price AS sum  FROM offer_sup AS os
       INNER JOIN supplies AS sup ON os.supplieId = sup.id
       WHERE os.supplieId = ${offer[i].id}
       ORDER BY os.supplieId
@@ -134,7 +136,7 @@ exports.getAll_unitOfSup = (req,res) =>{
           nest: true,
           type: QueryTypes.SELECT
         }
-      ).then( unit => {
+      ).then(unit => {
         console.log(unit[0])
         arr.push(unit[0])
       })
@@ -150,26 +152,58 @@ exports.getAll_unitOfSup = (req,res) =>{
 
 }
 
-exports.clear_all = async (req,res) => {
+exports.clear_all = async (req, res) => {
   const offer = await sequelize.query(
     `
     DELETE FROM offers
     `
   )
   res.json({
-    offer:offer
+    offer: offer
   })
 }
 
 exports.update_appove = async (req, res) => {
-  try{
-      const update = await Offer.update({...req.body},{where: {id:req.body.id}});
-      res.json({
-          update: update
-      });
-  } catch (e){
-      res.status(403).json({
-          message:e
-      });
+  try {
+    const update = await Offer.update({ ...req.body }, { where: { id: req.body.id } });
+    res.json({
+      update: update
+    });
+  } catch (e) {
+    res.status(403).json({
+      message: e
+    });
   }
 };
+
+exports.getBudget = async (req, res) => {
+  try {
+    const budget = await Budget.findAll({
+      where: {
+        [Op.and]: [{ userId: req.body.userId }, { budget_year: req.body.budget_year }]
+      }
+    })
+    res.json({
+      budget: budget
+    })
+  } catch (e) {
+    res.status(403).json({
+      message: e
+    });
+  }
+}
+
+exports.updateBudget = async (req, res) => {
+  try {
+    const budget = await Budget.update({ budget: req.body.budget }, {
+      where: {
+        [Op.and]: [{ userId: req.body.userId }, { budget_year: req.body.budget_year }]
+      }
+    })
+    res.send({ message: "done" })
+  } catch (e) {
+    res.status(403).json({
+      message: e
+    });
+  }
+}

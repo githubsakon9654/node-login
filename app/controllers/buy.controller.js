@@ -10,7 +10,7 @@ exports.buyList = async (req, res) => {
         // const buy = await Buyform.findAll();
         const buy = await sequelize.query(
             `
-            SELECT id,status,buyprice,SUBSTRING(createdAt, 1, 10) AS Date FROM buyforms
+            SELECT id,name,status,repel,accept,buyprice,SUBSTRING(createdAt, 1, 10) AS Date FROM buyforms
             `,
             {
                 nest: true,
@@ -28,8 +28,9 @@ exports.insert_buy_sup = (req,res) => {
         Buyform.create(
             {
                 status: false,
+                repel: false,
                 buyprice: req.body.buyprice,
-                userId: req.body.userId
+                userId: req.body.userId,
             }
         ).then( buy =>{
             if(req.body.supplie){
@@ -48,7 +49,7 @@ exports.insert_buy_sup = (req,res) => {
                             console.log(req.body.supplie[i]);
                             console.log(req.body.units[i]);
                             sequelize.query(
-                                `UPDATE supplie_buy SET unit=${req.body.units[i]}
+                                `UPDATE supplie_buy SET unit=${req.body.units[i]}, sum=${req.body.sum[i]}
                                 WHERE buyId=${id} AND supplieId=${req.body.supplie[i]}`,
                                 {
                                     nest: true,
@@ -68,7 +69,7 @@ exports.insert_buy_sup = (req,res) => {
 exports.get_by_id = async (req, res) => {
     try{
         const buy = await sequelize.query(
-            `SELECT bf.id,bf.status,bf.buyprice,users.fullname,users.classes,sup.supplie_name,
+            `SELECT bf.repel,bf.accept,bf.store, bf.id,bf.status,bf.buyprice,users.fullname,users.classes,sup.supplie_name,
             sup.price,sb.unit,sup.unit_name,sb.supplieId FROM buyforms AS bf
             INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
             INNER JOIN users ON users.id = bf.userId

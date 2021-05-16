@@ -1,18 +1,18 @@
 module.exports = (sequelize, Sequelize) => {
     const repair = sequelize.define('repair' ,{
         id: {
-            type: Sequelize.INTEGER,
+            type: Sequelize.INTEGER(4),
             primaryKey: true,
             autoIncrement: true
         },
         rep_name: {
-            type: Sequelize.STRING
+            type: Sequelize.STRING(55)
         },
         rep_detail: {
-            type: Sequelize.STRING
+            type: Sequelize.TEXT
         },
         rep_price: {
-            type: Sequelize.STRING
+            type: Sequelize.INTEGER(5)
         }
     });
     return repair;

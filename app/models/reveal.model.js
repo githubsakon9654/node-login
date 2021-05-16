@@ -1,7 +1,7 @@
 module.exports = (sequelize, Sequelize) => {
     const reveal = sequelize.define("reveal", {
         id: {
-            type: Sequelize.INTEGER,
+            type: Sequelize.INTEGER(4),
             primaryKey: true,
             autoIncrement: true
         },
@@ -12,7 +12,7 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.BOOLEAN
         },
         total_price: {
-            type: Sequelize.INTEGER
+            type: Sequelize.INTEGER(6)
         },
         accept: {
             type: Sequelize.BOOLEAN

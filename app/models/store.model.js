@@ -1,16 +1,16 @@
-module.exports = (sequelize, Sequelize) => {
-    const returns = sequelize.define("returns", {
+module.exports = ( sequelize , Sequelize) => {
+    const store = sequelize.define("stores", {
         id: {
             type: Sequelize.INTEGER(4),
             primaryKey: true,
             autoIncrement: true
         },
-        re_name: {
+        name: {
             type: Sequelize.STRING(55)
         },
-        status: {
-            type: Sequelize.BOOLEAN
+        contect: {
+            type: Sequelize.TEXT
         }
     });
-    return returns;
+    return store;
 };
