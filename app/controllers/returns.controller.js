@@ -11,7 +11,7 @@ exports.returns_Alllist = async(req,res) => {
         // const returns = await Returns.findAll();
         const returns = await sequelize.query(
             `
-            SELECT id,re_name,status,SUBSTRING(createdAt, 1, 10) AS Date FROM returns
+            SELECT id,re_name,status,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM returns
             `,
             {
                 nest: true,
@@ -28,6 +28,28 @@ exports.returns_Alllist = async(req,res) => {
     }
 };
 
+exports.fill_date = async (req, res) => {
+    try{
+        const reveal = await sequelize.query(
+            `
+            SELECT id,re_name,status,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM returns
+            WHERE createdAt BETWEEN "${req.body.start}" AND "${req.body.end}"
+            `,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        )
+        res.json({
+            date:reveal
+        })
+    } catch (e) {
+        res.status(403).json({
+            message:e
+        });
+    }
+}
+
 exports.return_user_list = async(req,res)=>{
     try{
         // const returns = await Returns.findAll({
@@ -37,7 +59,7 @@ exports.return_user_list = async(req,res)=>{
         // });
         const returns = await sequelize.query(
             `
-            SELECT id,re_name,status,SUBSTRING(createdAt, 1, 10) AS Date FROM returns
+            SELECT id,re_name,status,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM returns
             WHERE userId = ${req.body.userId}
             `,
             {
@@ -135,7 +157,7 @@ exports.return_detail = async (req,res) => {
     try{
         const returns = await sequelize.query(
             `SELECT rt.id,rt.re_name,us.classes,db.du_name,db.du_status,db.du_serial, 
-            rd.duId,rt.userId FROM returns AS rt
+            rd.duId,db.userId FROM returns AS rt
             INNER JOIN re_du AS rd ON rt.id = rd.returnId
             INNER JOIN durables AS db ON rd.duId = db.id
             INNER JOIN users AS us ON us.id = rt.userId

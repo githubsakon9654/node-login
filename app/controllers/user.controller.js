@@ -59,7 +59,12 @@ exports.findUserById = async (req, res) => {
         id: req.body.id
       }
     });
-    res.json({ user: user });
+    const budget = await Budget.findOne({
+      where: {
+        [Op.and]: [{ userId: req.body.id }, {budget_year:req.body.budget_year}]
+      }
+    })
+    res.json({ user: user,budget:budget });
   } catch (e) {
     res.status(403).json({
       message: e
@@ -191,6 +196,26 @@ exports.getbudget = async (req, res) => {
       SELECT bg.budget,bg.budget_year,users.id FROM users
       INNER JOIN budgets AS bg ON bg.userId = users.id
       WHERE bg.budget_year = "${req.body.budget_year}" AND users.id = ${req.body.userId}
+      `,{
+        nest: true,
+        type: QueryTypes.SELECT
+      }
+    )
+    res.json({
+      user:user
+    })
+  } catch (e) {
+    res.status(500).send({ message: err.message });
+  }
+} 
+
+exports.getAllBudget = async (req, res) => {
+  try{
+    const user = await sequelize.query(
+      `
+      SELECT SUM(bg.budget) AS sum,bg.budget_year FROM users
+      INNER JOIN budgets AS bg ON bg.userId = users.id
+      WHERE bg.budget_year = "${req.body.budget_year}"
       `,{
         nest: true,
         type: QueryTypes.SELECT

@@ -10,7 +10,8 @@ exports.reveal_list_all = async (req, res) => {
         // const reveals = await Reveal.findAll();
         const reveals = await sequelize.query(
             `
-            SELECT rl.id,rl.admin_approve,rl.dire_approvev,rl.total_price,SUBSTRING(rl.createdAt, 1, 10) AS Date,us.fullname,rl.accept FROM reveals as rl
+            SELECT rl.id,rl.admin_approve,rl.dire_approvev,rl.total_price,DATE_FORMAT(DATE_ADD(rl.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,
+            us.fullname,rl.accept FROM reveals as rl
             LEFT JOIN users AS us ON rl.userId = us.id
             `,
             {
@@ -37,7 +38,7 @@ exports.reveal_list_user = async (req, res) => {
         // });
         const reveal = await sequelize.query(
             `
-            SELECT rl.id,rl.admin_approve,rl.dire_approvev,rl.total_price,SUBSTRING(rl.createdAt, 1, 10) AS Date,us.fullname,rl.accept FROM reveals as rl
+            SELECT rl.id,rl.admin_approve,rl.dire_approvev,rl.total_price,DATE_FORMAT(DATE_ADD(rl.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,us.fullname,rl.accept FROM reveals as rl
             LEFT JOIN users AS us ON rl.userId = us.id
             WHERE rl.userId = ${req.body.userId}
             `,
@@ -135,3 +136,27 @@ exports.update_appove = async (req, res) => {
         });
     }
 };
+
+exports.fill_date = async (req, res) => {
+    try{
+        const reveal = await sequelize.query(
+            `
+            SELECT rl.id,rl.admin_approve,rl.dire_approvev,rl.total_price,DATE_FORMAT(DATE_ADD(rl.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,
+            us.fullname,rl.accept FROM reveals as rl
+            LEFT JOIN users AS us ON rl.userId = us.id
+            WHERE rl.createdAt BETWEEN "${req.body.start}" AND "${req.body.end}"
+            `,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        )
+        res.json({
+            date:reveal
+        })
+    } catch (e) {
+        res.status(403).json({
+            message:e
+        });
+    }
+}

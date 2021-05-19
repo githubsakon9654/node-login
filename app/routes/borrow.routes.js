@@ -7,4 +7,5 @@ module.exports = function(app){
     app.post("/api/borrow/detail",controller.borrow_detail);
     app.post("/api/borrow/updateAppove",controller.update_appove);
     app.post("/api/borrow/update",controller.update);
+    app.post("/api/borrow/filldate",controller.fill_date);
 };

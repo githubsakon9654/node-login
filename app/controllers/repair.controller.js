@@ -9,7 +9,7 @@ exports.get_All = async (req, res) =>{
         // const repairs = await Repair.findAll();
         const repairs = await sequelize.query(
             `
-            SELECT id,rep_name,rep_detail,rep_price,SUBSTRING(createdAt, 1, 10) AS Date FROM repairs
+            SELECT id,rep_name,rep_detail,rep_price,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM repairs
             WHERE durableId = ${req.body.duId}
             `,
             {
@@ -43,3 +43,24 @@ exports.insert = async (req, res) => {
         });
     }
 };
+exports.all_repair_list = async(req,res) => {
+    try{
+        const repairs = await sequelize.query(
+            `
+            SELECT rp.id,rp.rep_name,rp.rep_detail,rp.rep_price,DATE_FORMAT(DATE_ADD(rp.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date, db.du_name, db.du_serial FROM repairs AS rp
+            INNER JOIN durables AS db ON rp.durableId = db.id 
+            `,
+            {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        )
+        res.json({
+            repair:repairs
+        })
+    }catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+}

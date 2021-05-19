@@ -7,4 +7,5 @@ module.exports = function(app){
     app.post('/api/return/fillter',controller.fillter);
     app.post('/api/return/detail',controller.return_detail);
     app.post('/api/return/update',controller.update_status);
+    app.post('/api/return/filldate',controller.fill_date);
 };

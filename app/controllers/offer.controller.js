@@ -12,8 +12,28 @@ exports.getAll_offer = async (req, res) => {
     // const offers = await Offer.findAll();
     const offers = await sequelize.query(
       `
-          SELECT id,offer_name,offer_status,SUBSTRING(createdAt, 1, 10) AS Date,price FROM offers
+          SELECT id,offer_name,offer_status,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,price FROM offers
           `,
+      {
+        nest: true,
+        type: QueryTypes.SELECT
+      }
+    )
+    res.json({ offers: offers });
+  } catch (e) {
+    res.status(403).json({
+      message: e
+    });
+  }
+};
+
+exports.getoffer_toreveal = async (req, res) => {
+  try {
+    const offers = await sequelize.query(
+      `
+      SELECT id,offer_name,offer_status,DATE_FORMAT(createdAt, " %d %M %Y") AS Date,price FROM offers
+      WHERE userId = ${req.body.userId} AND offer_status = 1
+      `,
       {
         nest: true,
         type: QueryTypes.SELECT
@@ -86,7 +106,7 @@ exports.get_offer_appove = (req, res) => {
 exports.get_datail_offer = async (req, res) => {
   const offer = await sequelize.query(
     `SELECT offers.id,sup.supplie_name,sup.price,sup.unit_name,
-    os.unit,users.fullname,users.classes, os.supplieId FROM offers
+    os.unit,users.fullname,users.classes, os.supplieId,offers.price AS offprice FROM offers
     INNER JOIN offer_sup AS os ON offers.id = os.offerId
     INNER JOIN users ON users.id = offers.userId
     INNER JOIN supplies AS sup ON os.supplieId = sup.id

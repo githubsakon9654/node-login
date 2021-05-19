@@ -6,4 +6,5 @@ module.exports = function(app){
     app.post('/api/reveal/insert', controller.insert_reveal_sup);
     app.post('/api/reveal/detail', controller.get_detail_reveal);
     app.post('/api/reveal/updateAppove', controller.update_appove);
+    app.post('/api/reveal/filldate', controller.fill_date);
 };

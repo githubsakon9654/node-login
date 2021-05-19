@@ -12,7 +12,7 @@ exports.listAll_durable = async(req,res) => {
         // const durables = await Durable.findAll();
         const durables = await sequelize.query(
             `
-            SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,db.userId FROM durables AS db
+            SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,db.userId,db.date,db.du_price,db.get FROM durables AS db
             LEFT JOIN users ON users.id = db.userId 
             `,{
                 nest: true,
@@ -36,7 +36,7 @@ exports.listUser_durable = async(req,res) => {
         // });
         const durables = await sequelize.query(
             `
-            SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,db.userId FROM durables AS db
+            SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,db.userId,db.date,db.du_price,db.get FROM durables AS db
             INNER JOIN users ON users.id = db.userId
             WHERE db.userId = ${req.body.id}
             `,
@@ -55,14 +55,25 @@ exports.listUser_durable = async(req,res) => {
 
 exports.createDurable = async (req,res) => {
     try{
+        // const durable = await Durable.create({
+        //     du_name: req.body.du_name,
+        //     du_status: req.body.du_status
+        // }).then( du => {
+        //     const date = req.body.du_serial + '/'  + (Date(du.createdAt)).substring(8,10)+ '-' +(Date(du.createdAt)).substring(4,7) +'-'+ (Date(du.createdAt)).substring(11,15) + '/'+ du.id;
+        //     console.log(Date(du.createdAt))
+        //     du.update({du_serial:date},{where:{id:du.id}})
+        // })
+        const date = Date(req.body.date)
         const durable = await Durable.create({
             du_name: req.body.du_name,
-            du_status: req.body.du_status
-        }).then( du => {
-            const date = req.body.du_serial + '/'  + (Date(du.createdAt)).substring(8,10)+ '-' +(Date(du.createdAt)).substring(4,7) +'-'+ (Date(du.createdAt)).substring(11,15) + '/'+ du.id;
-            console.log(Date(du.createdAt))
-            du.update({du_serial:date},{where:{id:du.id}})
+            du_status: req.body.du_status,
+            du_price: req.body.du_price,
+            get: req.body.get,
+            userId:null,
+            date: req.body.date,
+            du_serial: req.body.du_serial
         })
+
         res.json({durable:durable});
     } catch (e) {
         res.status(403).json({message: e.errors[0].message});

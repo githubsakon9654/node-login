@@ -14,7 +14,7 @@ module.exports = (sequelize, Sequelize) => {
         du_serial: {
             type: Sequelize.STRING(55)
         },
-        proven: {
+        get: {
             type: Sequelize.STRING(25)
         },
         du_price: {

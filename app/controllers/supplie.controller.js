@@ -126,7 +126,7 @@ exports.filter = async (req, res) => {
             INNER JOIN supplies ON supplie_years.supplieId = supplies.id
             INNER JOIN year_units ON year_units.supplieYearId = supplie_years.id
             LEFT JOIN stores ON supplies.storeId = stores.id
-            WHERE supplies.supplie_name LIKE "%${filter}%" AND supplie_years.year = "${req.body.year}"
+            WHERE supplies.supplie_name LIKE "%${filter}%" AND supplie_years.year = "${req.body.year}" AND supplie_years.unit != 0
             GROUP BY supplie_years.id
             `,
             {
@@ -286,10 +286,11 @@ exports.deleteunit = async (req, res) => {
         await sequelize.query(
             `
             UPDATE supplie_years
-            SET unit= 0
+            SET unit = 0
             WHERE supplie_years.supplieId = ${req.body.supplieId} AND supplie_years.year ='${req.body.year}'
             `
         )
+        res.send({message: "set 0"})
     } catch (e) {
         res.status(403).json({
             message: e

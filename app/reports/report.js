@@ -7,7 +7,7 @@ const Supplie = db.supplie;
 const Durable = db.durable;
 const User = db.user;
 const Offer = db.offer;
-var date = (Date()).substring(0,24);
+var date = (Date()).substring(0, 24);
 
 pdfMake.vfs = vfsFonts.pdfMake.vfs;
 
@@ -27,35 +27,50 @@ pdfMake.fonts = {
 };
 
 exports.supplieList = async (req, res, next) => {
-
-  const supplies = await Supplie.findAll();
+  var { id, id2 } = req.params;
+  console.log(id)
+  const supplies = await sequelize.query(
+    `
+    SELECT supplie_years.supplieId,supplies.supplie_name,supplie_years.id,supplie_years.year,supplie_years.unit,stores.name,supplies.unit_name,supplies.price 
+            FROM supplie_years
+            INNER JOIN supplies ON supplie_years.supplieId = supplies.id
+            INNER JOIN year_units ON year_units.supplieYearId = supplie_years.id
+            LEFT JOIN stores ON supplies.storeId = stores.id
+            WHERE supplie_years.year = "${id}/${id2}"
+            GROUP BY supplie_years.id
+    `,
+    {
+      nest: true,
+      type: QueryTypes.SELECT
+    }
+  )
   var length = supplies.length;
   var rows = [];
   rows.push([
-    {text: 'No.',style:'fillheader'},{text:  'ชื่อพัสดุ',style:'fillheader'},
-    {text:  'ราคา', style:'fillheader'},{text:  'จำนวน', style:'fillheader'} , 
-    {text:  'หน่วย',style:'fillheader'}
+    { text: 'No.', style: 'fillheader' }, { text: 'ชื่อพัสดุ', style: 'fillheader' },
+    { text: 'ราคา', style: 'fillheader' }, { text: 'จำนวน', style: 'fillheader' },
+    { text: 'หน่วย', style: 'fillheader' }
   ]);
 
-  for(var i = 0; i< length;i++) {
-    rows.push([+supplies[i].id,supplies[i].supplie_name, +supplies[i].price,+supplies[i].unit, supplies[i].unit_name]);
+  for (var i = 0; i < length; i++) {
+    rows.push([+supplies[i].id, supplies[i].supplie_name, +supplies[i].price, +supplies[i].unit, supplies[i].unit_name]);
   }
 
   var documentDefinition = {
     pageSize: 'A4',
-    header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+    header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
     footer: {
       columns: [
-        { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+        { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
       ]
     },
     content: [
-      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-      {text: 'รายการพัสดุที่อยู่ในคลัง',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+      { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
+      { text: 'รายการพัสดุที่อยู่ในคลัง', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
       {
         table: {
-                widths: ['auto',200, '*', '*', 100],
-                body: rows
+          widths: ['auto', 200, '*', '*', 100],
+          body: rows
         },
         layout: {
           fillColor: function (rowIndex, node, columnIndex) {
@@ -65,15 +80,15 @@ exports.supplieList = async (req, res, next) => {
       }
     ],
     styles: {
-      fillheader:{
-        fontSize:18,
-        bold:true,
+      fillheader: {
+        fontSize: 18,
+        bold: true,
         fillColor: '#60BF6A'
       }
     },
     defaultStyle: {
       font: 'THSarabunNew',
-      fontSize:14
+      fontSize: 14
     }
   };
   const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -84,16 +99,16 @@ exports.supplieList = async (req, res, next) => {
         'Content-Disposition': 'attachment;filename="supplielist.pdf"'
       });
 
-    const download =  Buffer.from(data.toString('utf-8'), 'base64');
+    const download = Buffer.from(data.toString('utf-8'), 'base64');
     res.end(download);
   });
 };
-
+// done
 exports.durableList = async (req, res, next) => {
 
   const durables = await Durable.findAll();
   const list = await sequelize.query(
-    `SELECT db.id,db.du_name,du_status,du_serial,users.fullname FROM durables AS db 
+    `SELECT db.id,db.du_name,db.du_status,db.du_serial,db.get,users.fullname,db.du_price,db.date FROM durables AS db 
     LEFT JOIN users ON db.userId = users.id`,
     {
       nest: true,
@@ -103,53 +118,120 @@ exports.durableList = async (req, res, next) => {
   var length = list.length;
   var rows = [];
   rows.push([
-  {text: 'No.',style:'fillheader'},{text:  'ชื่อครุภัณฑ์',style:'fillheader'},
-  {text:  'สภาพ', style:'fillheader'},{text:  'รหัสครุภัณฑ์', style:'fillheader'} , 
-  {text:  'ถือครอง',style:'fillheader'}]);
-  
-  var fullname ='';
-  for(var i = 0; i< length;i++) {
-    if(!list[i].fullname){
+    { text: 'วัน/เดือน/ปี', style: 'fillheader' }, { text: 'เลขที่หรือรหัส', style: 'fillheader' },
+    { text: 'ชื่อครุภัณฑ์', style: 'fillheader' }, { text: 'หมายเลขและทะเบียน', style: 'fillheader' },
+    { text: 'ราคาต่อหน่วย(บาท)', style: 'fillheader' }, { text: 'วิธีการได้มา', style: 'fillheader' },
+    { text: 'เลขเอกสาร', style: 'fillheader' }, { text: 'ถือครอง', style: 'fillheader' },
+    { text: 'เลขเอกสาร', style: 'fillheader' }, { text: 'ถือครอง', style: 'fillheader' },
+    { text: 'เลขเอกสาร', style: 'fillheader' }
+  ]);
+
+  var fullname = '';
+  for (var i = 0; i < length; i++) {
+    if (!list[i].fullname) {
       fullname = 'คลัง';
-    } else{
+    } else {
       fullname = list[i].fullname;
     }
-    rows.push([+list[i].id,list[i].du_name, list[i].du_status,list[i].du_serial,fullname]);
-  }
 
+    var cate = list[i].du_serial.substring(4, 12)
+    var price = new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(list[i].du_price)
+    var date = list[i].date.toString()
+    var month = date.substring(5, 7)
+    var year = +((list[i].date.toString()).substring(2, 4)) + 43
+    var day = (list[i].date.toString()).substring(8, 10)
+    // console.log(year)
+    var THmonth
+    switch (+month) {
+      case 1:
+        THmonth = ' ม.ค. '
+        break;
+      case 2:
+        THmonth = ' ก.พ. '
+        break;
+      case 3:
+        THmonth = ' มี.ค. '
+        break;
+      case 4:
+        THmonth = ' เม.ย. '
+        break;
+      case 5:
+        THmonth = ' พ.ค. '
+        break;
+      case 6:
+        THmonth = ' มิ.ย. '
+        break;
+      case 7:
+        THmonth = ' ก.ค. '
+        break;
+      case 8:
+        THmonth = ' ส.ค. '
+        break;
+      case 9:
+        THmonth = ' ก.ย. '
+        break;
+      case 10:
+        THmonth = ' ตุ.ค. '
+        break;
+      case 11:
+        THmonth = ' พฤ.ย. '
+        break;
+      case 12:
+        THmonth = ' ธ.ค. '
+    }
+    var THdate = day + THmonth + year
+    // console.log(THdate)
+    rows.push([
+      THdate, cate, list[i].du_name, list[i].du_serial, price, list[i].get, '', fullname, '', '', ''
+    ]);
+  }
   var documentDefinition = {
     pageSize: 'A4',
-    header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+    pageOrientation: 'landscape',
+    // header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [0, 0, 0, 5], alignment: 'center' },
     footer: {
       columns: [
-        { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+        { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
       ]
     },
     content: [
-      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-      {text: 'รายการครุภัณฑ์ที่อยู่ในคลัง',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+      { text: 'ทะเบียนครุภัณฑ์', style: 'header', fontSize: 20, bold: true, margin: [0, 20, 0, 0], alignment: 'center' },
       {
-      table: {
-              widths: ['auto',200, '*', '*', 100],
-              body: rows
-          },
-          layout: {
-            fillColor: function (rowIndex, node, columnIndex) {
-              return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
-            }
-          }
+        alignment: 'justify',
+        columns: [
+          { text: 'แผ่นที่', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 0], alignment: '' },
+          { text: 'ส่วนราชการ สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 0], alignment: '' },
+        ]
+      },
+      {
+        alignment: 'justify',
+        columns: [
+          { text: 'ประเภท ', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 10], alignment: '' },
+          { text: 'หน่วยงาน โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 10], alignment: '' },
+        ]
+      },
+      {
+        table: {
+          widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', 'auto', '*'],
+          body: rows
+        },
+        // layout: {
+        //   fillColor: function (rowIndex, node, columnIndex) {
+        //     return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+        //   }
+        // }
       }
     ],
     styles: {
-      fillheader:{
-        fontSize:18,
-        bold:true,
-        fillColor: '#60BF6A'
+      fillheader: {
+        fontSize: 18,
+        bold: true,
+        fillColor: '#A9A9A9'
       }
     },
     defaultStyle: {
       font: 'THSarabunNew',
-      fontSize:14
+      fontSize: 14
     }
   };
   const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -160,13 +242,13 @@ exports.durableList = async (req, res, next) => {
         'Content-Disposition': 'attachment;filename="durablelists.pdf"'
       });
 
-    const download =  Buffer.from(data.toString('utf-8'), 'base64');
+    const download = Buffer.from(data.toString('utf-8'), 'base64');
     res.end(download);
   });
 };
 
 exports.offerList = async (req, res, next) => {
-  try{
+  try {
     const list = await sequelize.query(
       `SELECT db.id,db.offer_name,db.offer_status,users.fullname,db.createdAt FROM offers AS db 
       LEFT JOIN users ON db.userId = users.id`,
@@ -178,41 +260,41 @@ exports.offerList = async (req, res, next) => {
     var length = list.length;
     var rows = [];
     rows.push([
-      {text: 'No.',style:'fillheader'},{text:  'ชื่อคนเสนอ',style:'fillheader'},
-      {text:  'สถานะ', style:'fillheader'},{text:  'เวลาที่เสนอ', style:'fillheader'} 
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อคนเสนอ', style: 'fillheader' },
+      { text: 'สถานะ', style: 'fillheader' }, { text: 'เวลาที่เสนอ', style: 'fillheader' }
     ]);
     var status = '';
     var date = '';
     var fullname;
-    for(var i = 0; i< length;i++) {
-      if(!list[i].offer_status){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].offer_status) {
         status = 'ยังไม่รับทราบ';
-      } else{
+      } else {
         status = 'รับทราบแล้ว';
       }
       fullname = list[i].fullname;
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].id,fullname, status,date]);
+      rows.push([+list[i].id, fullname, status, date]);
     }
 
 
     var documentDefinition = {
       pageSize: 'A4',
-      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
       footer: {
         columns: [
-          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
-        {text: 'รายการแบบเสนอที่ร้องขอ',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 0], alignment: 'center' },
+        { text: 'รายการแบบเสนอที่ร้องขอ', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
-                  
-                  widths: ['auto',200, '*', 'auto'],
-                  body: rows
+
+            widths: ['auto', 200, '*', 'auto'],
+            body: rows
           },
           layout: {
             fillColor: function (rowIndex, node, columnIndex) {
@@ -222,15 +304,15 @@ exports.offerList = async (req, res, next) => {
         }
       ],
       styles: {
-        fillheader:{
-          fontSize:18,
-          bold:true,
+        fillheader: {
+          fontSize: 18,
+          bold: true,
           fillColor: '#60BF6A'
         }
       },
       defaultStyle: {
         font: 'THSarabunNew',
-        fontSize:14
+        fontSize: 14
       }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -240,17 +322,17 @@ exports.offerList = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="offerlist.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
-  } catch (e){
+  } catch (e) {
     console.log(e);
   }
 };
 
 exports.borrowList = async (req, res, next) => {
-  try{
+  try {
     const list = await sequelize.query(
       `SELECT db.id,db.admin_approve,db.dire_approvev,users.fullname,db.createdAt FROM borrows AS db 
       LEFT JOIN users ON db.userId = users.id`,
@@ -262,48 +344,48 @@ exports.borrowList = async (req, res, next) => {
     var length = list.length;
     var rows = [];
     rows.push([
-    {text: 'No.',style:'fillheader'},{text:  'ชื่อผู้ยืมครุภัณฑ์',style:'fillheader'},
-    {text:  'เจ้าหน้าที่อนุมัติ', style:'fillheader'},{text:  'ผู้อำนวยการที่อนุมัติ', style:'fillheader'} , 
-    {text:  'เวลาที่ขอยืม',style:'fillheader'}
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อผู้ยืมครุภัณฑ์', style: 'fillheader' },
+      { text: 'เจ้าหน้าที่อนุมัติ', style: 'fillheader' }, { text: 'ผู้อำนวยการที่อนุมัติ', style: 'fillheader' },
+      { text: 'เวลาที่ขอยืม', style: 'fillheader' }
     ]);
     var date = '';
     var adstatus = '';
     var distatus = '';
     var fullname;
-    for(var i = 0; i< length;i++) {
-      if(!list[i].dire_approvev){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].dire_approvev) {
         distatus = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         distatus = 'อนุมัติ';
       }
-      if(!list[i].admin_approve){
+      if (!list[i].admin_approve) {
         adstatus = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         adstatus = 'อนุมัติ';
       }
       fullname = list[i].fullname;
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].id,fullname,adstatus, distatus,date]);
+      rows.push([+list[i].id, fullname, adstatus, distatus, date]);
     }
 
 
     var documentDefinition = {
       pageSize: 'A4',
-      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
       footer: {
         columns: [
-          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-        {text: 'รายการยืมครุภัณฑ์ที่อยู่ในคลัง',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
+        { text: 'รายการยืมครุภัณฑ์ที่อยู่ในคลัง', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
-                  
-                  widths: ['auto',100, '*','*', 'auto'],
-                  body: rows
+
+            widths: ['auto', 100, '*', '*', 'auto'],
+            body: rows
           },
           layout: {
             fillColor: function (rowIndex, node, columnIndex) {
@@ -313,15 +395,15 @@ exports.borrowList = async (req, res, next) => {
         }
       ],
       styles: {
-        fillheader:{
-          fontSize:18,
-          bold:true,
+        fillheader: {
+          fontSize: 18,
+          bold: true,
           fillColor: '#60BF6A'
         }
       },
       defaultStyle: {
         font: 'THSarabunNew',
-        fontSize:14
+        fontSize: 14
       }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -331,8 +413,8 @@ exports.borrowList = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="borrowlist.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
   } catch (e) {
@@ -341,8 +423,8 @@ exports.borrowList = async (req, res, next) => {
 };
 
 exports.borrowListByUser = async (req, res, next) => {
-  try{
-    var {id} = req.params;
+  try {
+    var { id } = req.params;
     console.log(id);
     const list = await sequelize.query(
       `SELECT db.id,db.admin_approve,db.dire_approvev,users.fullname,db.createdAt FROM borrows AS db 
@@ -356,48 +438,48 @@ exports.borrowListByUser = async (req, res, next) => {
     var length = list.length;
     var rows = [];
     rows.push([
-    {text: 'No.',style:'fillheader'},{text:  'ชื่อผู้ยืมครุภัณฑ์',style:'fillheader'},
-    {text:  'เจ้าหน้าที่อนุมัติ', style:'fillheader'},{text:  'ผู้อำนวยการที่อนุมัติ', style:'fillheader'} , 
-    {text:  'เวลาที่ขอยืม',style:'fillheader'}
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อผู้ยืมครุภัณฑ์', style: 'fillheader' },
+      { text: 'เจ้าหน้าที่อนุมัติ', style: 'fillheader' }, { text: 'ผู้อำนวยการที่อนุมัติ', style: 'fillheader' },
+      { text: 'เวลาที่ขอยืม', style: 'fillheader' }
     ]);
     var date = '';
     var adstatus = '';
     var distatus = '';
     var fullname;
-    for(var i = 0; i< length;i++) {
-      if(!list[i].dire_approvev){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].dire_approvev) {
         distatus = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         distatus = 'อนุมัติ';
       }
-      if(!list[i].admin_approve){
+      if (!list[i].admin_approve) {
         adstatus = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         adstatus = 'อนุมัติ';
       }
       fullname = list[i].fullname;
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].id,fullname,adstatus, distatus,date]);
+      rows.push([+list[i].id, fullname, adstatus, distatus, date]);
     }
 
 
     var documentDefinition = {
       pageSize: 'A4',
-      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
       footer: {
         columns: [
-          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-        {text: 'รายการยืมครุภัณฑ์ที่อยู่ในคลัง',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
+        { text: 'รายการยืมครุภัณฑ์ที่อยู่ในคลัง', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
-                  
-                  widths: ['auto',100, '*','*', 'auto'],
-                  body: rows
+
+            widths: ['auto', 100, '*', '*', 'auto'],
+            body: rows
           },
           layout: {
             fillColor: function (rowIndex, node, columnIndex) {
@@ -407,15 +489,15 @@ exports.borrowListByUser = async (req, res, next) => {
         }
       ],
       styles: {
-        fillheader:{
-          fontSize:18,
-          bold:true,
+        fillheader: {
+          fontSize: 18,
+          bold: true,
           fillColor: '#60BF6A'
         }
       },
       defaultStyle: {
         font: 'THSarabunNew',
-        fontSize:14
+        fontSize: 14
       }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -425,8 +507,8 @@ exports.borrowListByUser = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="borrowlist.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
   } catch (e) {
@@ -435,99 +517,99 @@ exports.borrowListByUser = async (req, res, next) => {
 };
 
 exports.revealList = async (req, res, next) => {
- try{
-  const list = await sequelize.query(
-    `SELECT db.id,db.admin_approve,db.dire_approvev,users.fullname,db.createdAt,db.total_price FROM reveals AS db 
+  try {
+    const list = await sequelize.query(
+      `SELECT db.id,db.admin_approve,db.dire_approvev,users.fullname,db.createdAt,db.total_price FROM reveals AS db 
     LEFT JOIN users ON db.userId = users.id`,
-    {
-      nest: true,
-      type: QueryTypes.SELECT
-    }
-  );
-  var length = list.length;
-  var rows = [];
-  rows.push([
-    {text: 'No.',style:'fillheader'},{text:  'ชื่อคนเบิกพัสดุ',style:'fillheader'},
-    {text:  'ราคา', style:'fillheader'},{text: 'เจ้าหน้าที่', style:'fillheader'} , 
-    {text: 'ผู้อำนวยการ',style:'fillheader'},{text: 'เวลาที่ขอเบิก',style:'fillheader'}
-  ]);
-  var date = '';
-  var adstatus = '';
-  var distatus = '';
-  var fullname;
-  for(var i = 0; i< length;i++) {
-    if(!list[i].dire_approvev){
-      distatus = 'ยังไม่อนุมัติ';
-    } else{
-      distatus = 'อนุมัติ';
-    }
-    if(!list[i].admin_approve){
-      adstatus = 'ยังไม่อนุมัติ';
-    } else{
-      adstatus = 'อนุมัติ';
-    }
-    fullname = list[i].fullname;
-    date = (Date(list[i].createdAt)).substring(0,24);
-    console.log(date);
-    rows.push([+list[i].id,fullname,+list[i].total_price,adstatus, distatus,date]);
-  }
-
-
-  var documentDefinition = {
-    pageSize: 'A4',
-    header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
-    footer: {
-      columns: [
-        { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
-      ]
-    },
-    content: [
-      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-      {text: 'รายการการเบิกพัสดุ',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
       {
-        table: {
-                
-                widths: ['auto',150, '*', 'auto','auto', 150],
-                body: rows
-        },
-        layout: {
-          fillColor: function (rowIndex, node, columnIndex) {
-            return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+        nest: true,
+        type: QueryTypes.SELECT
+      }
+    );
+    var length = list.length;
+    var rows = [];
+    rows.push([
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อคนเบิกพัสดุ', style: 'fillheader' },
+      { text: 'ราคา', style: 'fillheader' }, { text: 'เจ้าหน้าที่', style: 'fillheader' },
+      { text: 'ผู้อำนวยการ', style: 'fillheader' }, { text: 'เวลาที่ขอเบิก', style: 'fillheader' }
+    ]);
+    var date = '';
+    var adstatus = '';
+    var distatus = '';
+    var fullname;
+    for (var i = 0; i < length; i++) {
+      if (!list[i].dire_approvev) {
+        distatus = 'ยังไม่อนุมัติ';
+      } else {
+        distatus = 'อนุมัติ';
+      }
+      if (!list[i].admin_approve) {
+        adstatus = 'ยังไม่อนุมัติ';
+      } else {
+        adstatus = 'อนุมัติ';
+      }
+      fullname = list[i].fullname;
+      date = (Date(list[i].createdAt)).substring(0, 24);
+      console.log(date);
+      rows.push([+list[i].id, fullname, +list[i].total_price, adstatus, distatus, date]);
+    }
+
+
+    var documentDefinition = {
+      pageSize: 'A4',
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
+      footer: {
+        columns: [
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
+        ]
+      },
+      content: [
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
+        { text: 'รายการการเบิกพัสดุ', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
+        {
+          table: {
+
+            widths: ['auto', 150, '*', 'auto', 'auto', 150],
+            body: rows
+          },
+          layout: {
+            fillColor: function (rowIndex, node, columnIndex) {
+              return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+            }
           }
         }
+      ],
+      styles: {
+        fillheader: {
+          fontSize: 18,
+          bold: true,
+          fillColor: '#60BF6A'
+        }
+      },
+      defaultStyle: {
+        font: 'THSarabunNew',
+        fontSize: 14
       }
-    ],
-    styles: {
-      fillheader:{
-        fontSize:18,
-        bold:true,
-        fillColor: '#60BF6A'
-      }
-    },
-    defaultStyle: {
-      font: 'THSarabunNew',
-      fontSize:14
-    }
-  };
-  const pdfDoc = await pdfMake.createPdf(documentDefinition);
-  pdfDoc.getBase64((data) => {
-    res.writeHead(200,
-      {
-        'Content-Type': 'application/pdf',
-        'Content-Disposition': 'attachment;filename="reveallist.pdf"'
-      });
+    };
+    const pdfDoc = await pdfMake.createPdf(documentDefinition);
+    pdfDoc.getBase64((data) => {
+      res.writeHead(200,
+        {
+          'Content-Type': 'application/pdf',
+          'Content-Disposition': 'attachment;filename="reveallist.pdf"'
+        });
 
-    const download =  Buffer.from(data.toString('utf-8'), 'base64');
-    res.end(download);
-  });
- } catch (e){
-   console.log(e);
- }
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
+      res.end(download);
+    });
+  } catch (e) {
+    console.log(e);
+  }
 };
 
 exports.revealByUser = async (req, res, next) => {
-  try{
-    const {id} = req.params;
+  try {
+    const { id } = req.params;
     const list = await sequelize.query(
       `SELECT db.id,db.admin_approve,db.dire_approvev,users.fullname,db.createdAt,db.total_price FROM reveals AS db 
       LEFT JOIN users ON db.userId = users.id
@@ -540,67 +622,67 @@ exports.revealByUser = async (req, res, next) => {
     var length = list.length;
     var rows = [];
     rows.push([
-      {text: 'No.',style:'fillheader'},{text:  'ชื่อคนเบิกพัสดุ',style:'fillheader'},
-      {text:  'ราคา', style:'fillheader'},{text: 'เจ้าหน้าที่', style:'fillheader'} , 
-      {text: 'ผู้อำนวยการ',style:'fillheader'},{text: 'เวลาที่ขอเบิก',style:'fillheader'}
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อคนเบิกพัสดุ', style: 'fillheader' },
+      { text: 'ราคา', style: 'fillheader' }, { text: 'เจ้าหน้าที่', style: 'fillheader' },
+      { text: 'ผู้อำนวยการ', style: 'fillheader' }, { text: 'เวลาที่ขอเบิก', style: 'fillheader' }
     ]);
     var date = '';
     var adstatus = '';
     var distatus = '';
     var fullname;
-    for(var i = 0; i< length;i++) {
-      if(!list[i].dire_approvev){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].dire_approvev) {
         distatus = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         distatus = 'อนุมัติ';
       }
-      if(!list[i].admin_approve){
+      if (!list[i].admin_approve) {
         adstatus = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         adstatus = 'อนุมัติ';
       }
       fullname = list[i].fullname;
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].id,fullname,+list[i].total_price,adstatus, distatus,date]);
+      rows.push([+list[i].id, fullname, +list[i].total_price, adstatus, distatus, date]);
     }
-  
-  
+
+
     var documentDefinition = {
       pageSize: 'A4',
-    header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
-    footer: {
-      columns: [
-        { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
-      ]
-    },
-    content: [
-      {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,0],alignment: 'center'},
-      {text: 'รายการการเบิกพัสดุ',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
-      {
-        table: {
-                
-                widths: ['auto',150, '*', 'auto','auto', 150],
-                body: rows
-        },
-        layout: {
-          fillColor: function (rowIndex, node, columnIndex) {
-            return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
+      footer: {
+        columns: [
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
+        ]
+      },
+      content: [
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 0], alignment: 'center' },
+        { text: 'รายการการเบิกพัสดุ', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
+        {
+          table: {
+
+            widths: ['auto', 150, '*', 'auto', 'auto', 150],
+            body: rows
+          },
+          layout: {
+            fillColor: function (rowIndex, node, columnIndex) {
+              return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+            }
           }
         }
+      ],
+      styles: {
+        fillheader: {
+          fontSize: 18,
+          bold: true,
+          fillColor: '#60BF6A'
+        }
+      },
+      defaultStyle: {
+        font: 'THSarabunNew',
+        fontSize: 14
       }
-    ],
-    styles: {
-      fillheader:{
-        fontSize:18,
-        bold:true,
-        fillColor: '#60BF6A'
-      }
-    },
-    defaultStyle: {
-      font: 'THSarabunNew',
-      fontSize:14
-    }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
     pdfDoc.getBase64((data) => {
@@ -609,30 +691,30 @@ exports.revealByUser = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="revealuser.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
-   } catch (e){
-     console.log(e);
-   }
+  } catch (e) {
+    console.log(e);
+  }
 };
-
+// done
 exports.revealDetail = async (req, res, next) => {
-  try{
-    const {id} = req.params;
+  try {
+    const { id } = req.params;
     const list = await sequelize.query(
       `SELECT bf.id,bf.total_price,sup.supplie_name,users.fullname,users.classes,
-      sup.price,sb.unit,sup.unit_name,sb.supplieId FROM reveals AS bf
+      sup.price,sb.unit,sup.unit_name,sb.supplieId,bf.createdAt FROM reveals AS bf
       INNER JOIN reveal_sup AS sb ON bf.id = sb.revealId
       INNER JOIN supplies AS sup ON sb.supplieId = sup.id
       INNER JOIN users ON bf.userId = users.id
       WHERE bf.id = ${id}`,
       {
-          nest: true,
-          type: QueryTypes.SELECT
+        nest: true,
+        type: QueryTypes.SELECT
       }
-  );
+    );
     console.log(req.params + 'dddd');
     var length = list.length;
     var name = list[0].fullname;
@@ -640,59 +722,145 @@ exports.revealDetail = async (req, res, next) => {
     var total = list[0].total_price;
     var unit = 0;
     var rows = [];
-    rows.push([
-      {text: 'No.',style:'fillheader'},{text:  'ชื่อพัสดุ',style:'fillheader'},
-      {text:  'ราคา', style:'fillheader'},{text:  'จำนวน', style:'fillheader'} , 
-      {text:  'หน่วย',style:'fillheader'}
-    ]);
+    rows.push(
+      [
+        { text: 'ลำดับที่', style: 'fillheader', rowSpan: 2 , alignment: 'center'}, { text: 'รายการ', style: 'fillheader', rowSpan: 2, alignment: 'center' },
+        { text: 'จำนวน', style: 'fillheader', colSpan: 2 , alignment: 'center'},{}, { text: 'หมายเหตุ', style: 'fillheader', rowSpan: 2, alignment: 'center' }
+        
+      ],
+      [
+        {}, {},
+        { text: 'ขอเบิก', style: 'fillheader', alignment: 'center'},{ text: 'เบิกได้', style: 'fillheader', alignment: 'center'}, {}
+        
+      ]
+    );
     var date = '';
-    for(var i = 0; i< length;i++) {
-      if(!list[i].offer_status){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].offer_status) {
         status = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         status = 'อนุมัติ';
       }
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].supplieId,list[i].supplie_name,+list[i].price, list[i].unit,list[i].unit_name]);
+      rows.push([i+1, list[i].supplie_name,{ text: list[i].unit ,alignment: 'center'} ,{ text: list[i].unit ,alignment: 'center'}, '']);
       fullname = list[i].fullname;
-      unit = unit +list[i].unit;
+      unit = unit + list[i].unit;
     }
-
+    var year = +((list[0].createdAt).toISOString()).substring(0, 4) + 543
+    var month = ((list[0].createdAt).toISOString()).substring(5, 7)
+    var day = ((list[0].createdAt).toISOString()).substring(8, 10)
+    var THmonth
+    console.log(year)
+    console.log(+month)
+    console.log(day)
+    switch (+month) {
+      case 1:
+        THmonth = ' มกราคม '
+        break;
+      case 2:
+        THmonth = ' กุมภาพันธ์ '
+        break;
+      case 3:
+        THmonth = ' มีนาคม '
+        break;
+      case 4:
+        THmonth = ' เมษายน '
+        break;
+      case 5:
+        THmonth = ' พฤษภาคม '
+        break;
+      case 6:
+        THmonth = ' มิถุนายน '
+        break;
+      case 7:
+        THmonth = ' กรกฎาคม '
+        break;
+      case 8:
+        THmonth = ' สิงหาคม '
+        break;
+      case 9:
+        THmonth = ' กันยายน '
+        break;
+      case 10:
+        THmonth = ' ตุลาคม '
+        break;
+      case 11:
+        THmonth = ' พฤศจิกายน '
+        break;
+      case 12:
+        THmonth = ' ธันวาคม '
+    }
+    var THdate = 'วันที่ ' + day + THmonth + 'พ.ศ. ' + year
+    var THdate2 =  day + THmonth + 'พ.ศ. ' + year
+    console.log(THdate)
 
     var documentDefinition = {
       pageSize: 'A4',
-      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      header:
+      {
+        // alignment: 'justify',
+        // columns: [
+        //   { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก',  fontSize: 20, bold: true, margin: [0, 20, 0, 5], alignment: 'center' }
+        // ]
+      },
       footer: {
-        columns: [
-          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
-        ]
+        // columns: [
+        //   { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
+        // ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-        {text: 'รายการพัสดุที่ขอเบิกของ ' + name +' ครูประจำชั้น '+ classes,style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        {
+          alignment: 'justify',
+          columns: [
+            {
+              fontSize: 18, bold: true, width: 440, text: 'ใบเบิกพัสดุ\nโรงเรียนบ้านสวายจีก อำเภอเมือง จังหวัดบุรีรัมย์\nสำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน', margin: [90, 20, 0, 0], alignment: 'center'
+            },
+            {
+              width: 60, text: 'เล่มที่................\nเล่มที่................', margin: [0, 20, 0, 0]
+            }
+          ]
+        },
+        { text: 'ฝ่าย/งาน.......................................................................', fontSize: 16, bold: false, margin: [0, 0, 0, 5], alignment: 'right' },
+        { text: THdate, fontSize: 16, bold: false, margin: [0, 0, 0, 5], alignment: 'center' },
+        { text: 'ข้าพเจ้าขอเบิกพัสดุตามรายการต่อไปนี้ ใช้ เป็นวัสดุเพื่อการศึกษาระดับชั้น' + classes, fontSize: 16, bold: false, margin: [0, 0, 0, 5], alignment: 'left' },
         {
           table: {
-            widths: ['auto',200, '*', '*', 100],
+            widths: ['auto', 200, '*', '*', 100],
+            headerRows: 2,
             body: rows
-          },
-          layout: 'lightHorizontalLines'
+          }
         },
-        {text:'จำนวนทั้งหมด : ' + unit + ' ชิ้น '+ 'ราคา : ' + total + ' บาท',alignment: 'right',margin:[0,10,5,0], style: 'price'},
+        { text: '..............................................................ผู้เบิก', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 340, y: 640}},
+        { text: '(' + fullname + ')', margin: [0, 10, 0, 5],fontSize: 16 ,alignment: 'center'  ,absolutePosition: {x: 340, y: 660}},
+        { text: 'ตำแหน่ง  ครู', margin: [0, 10, 0, 5],fontSize: 16,alignment: 'center'  ,absolutePosition: {x: 340, y: 680}},
+        { text: 'ได้มอบให้..............................................................', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 340, y: 700}},
+        { text: 'เป็นผู้รับแทน.........................................................', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 340, y: 720}},
+        { text: 'ลงชื่อ............................................................ผู้มอบ', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 340, y: 740}},
+        { text: 'ลงชื่อ........................................................ผู้รับมอบ', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 340, y: 760}},
+        { text: 'อนุญาตให้เบิกได้', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 40, y: 640}},
+        { text: '..................................................................ผู้สั่งจ่าย', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 40, y: 660}},
+        { text: 'ได้ตรวจหักจำนวนแล้ว', margin: [0, 10, 0, 5],fontSize: 16,absolutePosition: {x: 40, y: 680}},
+        { text: '.................................................................เจ้าหน้าที่พัสดุ', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 40, y: 700}},
+        { text: 'ได้รับของถูกต้องแล้ว', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 40, y: 720}},
+        { text: '.................................................................ผู้รับของ', margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 40, y: 740}},
+        { text: '(' + fullname + ')', margin: [0, 10, 0, 5],fontSize: 16,absolutePosition: {x: 100, y: 760}},
+        { text: THdate2, margin: [0, 10, 0, 5],fontSize: 16 ,absolutePosition: {x: 90, y: 780}},
       ],
       styles: {
-        fillheader:{
-          fontSize:18,
-          bold:true,
-          fillColor: '#60BF6A'
+        fillheader: {
+          fontSize: 18,
+          bold: true,
+          fillColor: '#A9A9A9'
         },
-        price:{
-          fontSize:16
+        price: {
+          fontSize: 16
         }
       },
       defaultStyle: {
         font: 'THSarabunNew',
-        fontSize:14
+        fontSize: 14,
+        columnGap: 20
       }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -702,17 +870,17 @@ exports.revealDetail = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="revealdetail.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
   } catch (e) {
-    
+
   }
 };
 
 exports.buylist = async (req, res, next) => {
-  try{
+  try {
     const list = await sequelize.query(
       `SELECT db.id,db.status,db.buyprice,users.fullname,db.createdAt FROM buyforms AS db 
       LEFT JOIN users ON db.userId = users.id`,
@@ -724,41 +892,41 @@ exports.buylist = async (req, res, next) => {
     var length = list.length;
     var rows = [];
     rows.push([
-      {text: 'No.',style:'fillheader'},{text:  'ชื่อเจ้าหน้าที่',style:'fillheader'},
-      {text: 'ราคา', style:'fillheader'},{text:  'สถานะ', style:'fillheader'} , 
-      {text:  'เวลาที่เสนอ',style:'fillheader'}
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อเจ้าหน้าที่', style: 'fillheader' },
+      { text: 'ราคา', style: 'fillheader' }, { text: 'สถานะ', style: 'fillheader' },
+      { text: 'เวลาที่เสนอ', style: 'fillheader' }
     ]);
     var status = '';
     var date = '';
     var fullname;
-    for(var i = 0; i< length;i++) {
-      if(!list[i].status){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].status) {
         status = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         status = 'อนุมัติ';
       }
       fullname = list[i].fullname;
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].id,fullname,+list[i].buyprice, status,date]);
+      rows.push([+list[i].id, fullname, +list[i].buyprice, status, date]);
     }
 
 
     var documentDefinition = {
       pageSize: 'A4',
-      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
       footer: {
         columns: [
-          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-        {text: 'รายการการสั่งซื้อพัสดุ',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
+        { text: 'รายการการสั่งซื้อพัสดุ', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
-                  widths: ['auto',150, '*','*', 150],
-                  body: rows
+            widths: ['auto', 150, '*', '*', 150],
+            body: rows
           },
           layout: {
             fillColor: function (rowIndex, node, columnIndex) {
@@ -768,15 +936,15 @@ exports.buylist = async (req, res, next) => {
         }
       ],
       styles: {
-        fillheader:{
-          fontSize:18,
-          bold:true,
+        fillheader: {
+          fontSize: 18,
+          bold: true,
           fillColor: '#60BF6A'
         }
       },
       defaultStyle: {
         font: 'THSarabunNew',
-        fontSize:14
+        fontSize: 14
       }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -786,19 +954,19 @@ exports.buylist = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="buylist.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
-  } catch (e){
+  } catch (e) {
     console.log(e);
   }
 };
 
 exports.buyform = async (req, res, next) => {
-  try{
-    
-    const {id} = req.params;
+  try {
+
+    const { id } = req.params;
     const list = await sequelize.query(
       `SELECT bf.id,bf.buyprice,sup.supplie_name,users.fullname,users.classes,
       sup.price,sb.unit,sup.unit_name,sb.supplieId FROM buyforms AS bf
@@ -807,10 +975,10 @@ exports.buyform = async (req, res, next) => {
       INNER JOIN users ON bf.userId = users.id
       WHERE bf.id = ${id}`,
       {
-          nest: true,
-          type: QueryTypes.SELECT
+        nest: true,
+        type: QueryTypes.SELECT
       }
-  );
+    );
     console.log(req.params + 'dddd');
     var length = list.length;
     var rows = [];
@@ -819,57 +987,57 @@ exports.buyform = async (req, res, next) => {
     var total = list[0].buyprice;
     var unit = 0;
     rows.push([
-      {text: 'No.',style:'fillheader'},{text:  'ชื่อพัสดุ',style:'fillheader'},
-      {text:  'ราคา', style:'fillheader'},{text:  'จำนวน', style:'fillheader'} , 
-      {text:  'หน่วย',style:'fillheader'}
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อพัสดุ', style: 'fillheader' },
+      { text: 'ราคา', style: 'fillheader' }, { text: 'จำนวน', style: 'fillheader' },
+      { text: 'หน่วย', style: 'fillheader' }
     ]);
     var date = '';
-    for(var i = 0; i< length;i++) {
-      if(!list[i].offer_status){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].offer_status) {
         status = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         status = 'อนุมัติ';
       }
       fullname = list[i].fullname;
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       fullname = list[i].fullname;
       console.log(date);
-      rows.push([+list[i].supplieId,list[i].supplie_name,+list[i].price, list[i].unit,list[i].unit_name]);
-      unit = unit +list[i].unit;
+      rows.push([+list[i].supplieId, list[i].supplie_name, +list[i].price, list[i].unit, list[i].unit_name]);
+      unit = unit + list[i].unit;
     }
     var documentDefinition = {
       pageSize: 'A4',
-      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
       footer: {
         columns: [
-          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-        {text: 'รายการสั่งซื้อพัสดุของ ' + name +' ครูประจำชั้น '+ classes,style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
+        { text: 'รายการสั่งซื้อพัสดุของ ' + name + ' ครูประจำชั้น ' + classes, style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
-            widths: ['auto',200, '*', '*', 100],
+            widths: ['auto', 200, '*', '*', 100],
             body: rows
           },
           layout: 'lightHorizontalLines'
         },
-        {text:'จำนวนทั้งหมด : ' + unit + ' ชิ้น '+ 'ราคา : ' + total + ' บาท',alignment: 'right',margin:[0,10,5,0], style: 'price'},
+        { text: 'จำนวนทั้งหมด : ' + unit + ' ชิ้น ' + 'ราคา : ' + total + ' บาท', alignment: 'right', margin: [0, 10, 5, 0], style: 'price' },
       ],
       styles: {
-        fillheader:{
-          fontSize:18,
-          bold:true,
+        fillheader: {
+          fontSize: 18,
+          bold: true,
           fillColor: '#60BF6A'
         },
-        price:{
-          fontSize:16
+        price: {
+          fontSize: 16
         }
       },
       defaultStyle: {
         font: 'THSarabunNew',
-        fontSize:14
+        fontSize: 14
       }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -879,18 +1047,18 @@ exports.buyform = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="buyform.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
   } catch (e) {
-    
+
   }
 };
 
 exports.returns = async (req, res, next) => {
-  try{
-    const {id} = req.params;
+  try {
+    const { id } = req.params;
     const list = await sequelize.query(
       `SELECT rt.id,rt.status,rt.re_name,rt.createdAt FROM returns AS rt 
       INNER JOIN users ON rt.userId = users.id
@@ -903,40 +1071,40 @@ exports.returns = async (req, res, next) => {
     var length = list.length;
     var rows = [];
     rows.push([
-      {text: 'No.',style:'fillheader'},{text:  'ชื่อเจ้าหน้าที่',style:'fillheader'},
-      {text:  'สถานะ', style:'fillheader'},{text:  'เวลาที่เสนอ', style:'fillheader'}
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อเจ้าหน้าที่', style: 'fillheader' },
+      { text: 'สถานะ', style: 'fillheader' }, { text: 'เวลาที่เสนอ', style: 'fillheader' }
     ]);
     var status = '';
     var date = '';
     var fullname;
-    for(var i = 0; i< length;i++) {
-      if(!list[i].status){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].status) {
         status = 'ยังไม่รับคืน';
-      } else{
+      } else {
         status = 'รับคืนแล้ว';
       }
       fullname = list[i].re_name;
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].id,fullname, status,date]);
+      rows.push([+list[i].id, fullname, status, date]);
     }
 
 
     var documentDefinition = {
       pageSize: 'A4',
-      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
       footer: {
         columns: [
-          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-        {text: 'รายการการคืนครุภัณฑ์',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
+        { text: 'รายการการคืนครุภัณฑ์', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
-                  widths: ['auto',150,'*', 150],
-                  body: rows
+            widths: ['auto', 150, '*', 150],
+            body: rows
           },
           layout: {
             fillColor: function (rowIndex, node, columnIndex) {
@@ -946,15 +1114,15 @@ exports.returns = async (req, res, next) => {
         }
       ],
       styles: {
-        fillheader:{
-          fontSize:18,
-          bold:true,
+        fillheader: {
+          fontSize: 18,
+          bold: true,
           fillColor: '#60BF6A'
         }
       },
       defaultStyle: {
         font: 'THSarabunNew',
-        fontSize:14
+        fontSize: 14
       }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -964,18 +1132,18 @@ exports.returns = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="returns.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
-  } catch (e){
+  } catch (e) {
     console.log(e);
   }
 };
 
 exports.returnsAll = async (req, res, next) => {
-  try{
-    const {id} = req.params;
+  try {
+    const { id } = req.params;
     const list = await sequelize.query(
       `SELECT rt.id,rt.status,rt.re_name,rt.createdAt FROM returns AS rt 
       LEFT JOIN users ON rt.userId = users.id`,
@@ -987,40 +1155,40 @@ exports.returnsAll = async (req, res, next) => {
     var length = list.length;
     var rows = [];
     rows.push([
-      {text: 'No.',style:'fillheader'},{text:  'ชื่อเจ้าหน้าที่',style:'fillheader'},
-      {text:  'สถานะ', style:'fillheader'},{text:  'เวลาที่เสนอ', style:'fillheader'}
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อเจ้าหน้าที่', style: 'fillheader' },
+      { text: 'สถานะ', style: 'fillheader' }, { text: 'เวลาที่เสนอ', style: 'fillheader' }
     ]);
     var status = '';
     var date = '';
     var fullname;
-    for(var i = 0; i< length;i++) {
-      if(!list[i].status){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].status) {
         status = 'ยังไม่รับคืน';
-      } else{
+      } else {
         status = 'รับคืนแล้ว';
       }
       fullname = list[i].re_name;
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].id,fullname, status,date]);
+      rows.push([+list[i].id, fullname, status, date]);
     }
 
 
     var documentDefinition = {
       pageSize: 'A4',
-      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
       footer: {
         columns: [
-          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-        {text: 'รายการการคืนครุภัณฑ์',style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
+        { text: 'รายการการคืนครุภัณฑ์', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
-                  widths: ['auto',150,'*', 150],
-                  body: rows
+            widths: ['auto', 150, '*', 150],
+            body: rows
           },
           layout: {
             fillColor: function (rowIndex, node, columnIndex) {
@@ -1030,15 +1198,15 @@ exports.returnsAll = async (req, res, next) => {
         }
       ],
       styles: {
-        fillheader:{
-          fontSize:18,
-          bold:true,
+        fillheader: {
+          fontSize: 18,
+          bold: true,
           fillColor: '#60BF6A'
         }
       },
       defaultStyle: {
         font: 'THSarabunNew',
-        fontSize:14
+        fontSize: 14
       }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -1048,19 +1216,19 @@ exports.returnsAll = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="returnsAll.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
-  } catch (e){
+  } catch (e) {
     console.log(e);
   }
 };
 
 exports.returnDetail = async (req, res, next) => {
-  try{
-    
-    const {id} = req.params;
+  try {
+
+    const { id } = req.params;
     const list = await sequelize.query(
       `SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,users.classes
       FROM returns AS rt
@@ -1069,65 +1237,65 @@ exports.returnDetail = async (req, res, next) => {
       INNER JOIN users ON rt.userId = users.id
       WHERE rt.id = ${id}`,
       {
-          nest: true,
-          type: QueryTypes.SELECT
+        nest: true,
+        type: QueryTypes.SELECT
       }
-  );
+    );
     var length = list.length;
     var rows = [];
     var name = list[0].fullname;
     var classes = list[0].classes;
     var unit = 0;
     rows.push([
-      {text: 'No.',style:'fillheader'},{text:  'ชื่อครุภัณฑ์',style:'fillheader'},
-      {text:  'สภาพ', style:'fillheader'},{text:  'รหัสครุภัณฑ์', style:'fillheader'}
+      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อครุภัณฑ์', style: 'fillheader' },
+      { text: 'สภาพ', style: 'fillheader' }, { text: 'รหัสครุภัณฑ์', style: 'fillheader' }
     ]);
     var date = '';
-    for(var i = 0; i< length;i++) {
-      if(!list[i].offer_status){
+    for (var i = 0; i < length; i++) {
+      if (!list[i].offer_status) {
         status = 'ยังไม่อนุมัติ';
-      } else{
+      } else {
         status = 'อนุมัติ';
       }
       fullname = list[i].fullname;
-      date = (Date(list[i].createdAt)).substring(0,24);
+      date = (Date(list[i].createdAt)).substring(0, 24);
       fullname = list[i].fullname;
       console.log(date);
-      rows.push([+list[i].id,list[i].du_name,list[i].du_status, list[i].du_serial]);
-      unit = unit +list[i].unit;
+      rows.push([+list[i].id, list[i].du_name, list[i].du_status, list[i].du_serial]);
+      unit = unit + list[i].unit;
     }
     var documentDefinition = {
       pageSize: 'A4',
-      header: {text:'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin:[5,0,0,5],alignment: 'center'},
+      header: { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', margin: [5, 0, 0, 5], alignment: 'center' },
       footer: {
         columns: [
-          { text: 'พิมพ์วันที่ ' + date, alignment: 'right',margin:[0,0,5,0] }
+          { text: 'พิมพ์วันที่ ' + date, alignment: 'right', margin: [0, 0, 5, 0] }
         ]
       },
       content: [
-        {text: 'โรงเรียนบ้านสวายจีก',style: 'header',fontSize: 20,bold:true, margin:[0,80,0,0],alignment: 'center'},
-        {text: 'รายการคืนครุภัณฑ์ของ ' + name +' ครูประจำชั้น '+ classes,style: 'header',fontSize: 20,bold:true, margin:[0,0,0,10],alignment: 'center'},
+        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
+        { text: 'รายการคืนครุภัณฑ์ของ ' + name + ' ครูประจำชั้น ' + classes, style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
-            widths: ['auto',200, '*', '*'],
+            widths: ['auto', 200, '*', '*'],
             body: rows
           },
           layout: 'lightHorizontalLines'
         },
       ],
       styles: {
-        fillheader:{
-          fontSize:18,
-          bold:true,
+        fillheader: {
+          fontSize: 18,
+          bold: true,
           fillColor: '#60BF6A'
         },
-        price:{
-          fontSize:16
+        price: {
+          fontSize: 16
         }
       },
       defaultStyle: {
         font: 'THSarabunNew',
-        fontSize:14
+        fontSize: 14
       }
     };
     const pdfDoc = await pdfMake.createPdf(documentDefinition);
@@ -1137,11 +1305,11 @@ exports.returnDetail = async (req, res, next) => {
           'Content-Type': 'application/pdf',
           'Content-Disposition': 'attachment;filename="returnDetail.pdf"'
         });
-  
-      const download =  Buffer.from(data.toString('utf-8'), 'base64');
+
+      const download = Buffer.from(data.toString('utf-8'), 'base64');
       res.end(download);
     });
   } catch (e) {
-    
+
   }
 };

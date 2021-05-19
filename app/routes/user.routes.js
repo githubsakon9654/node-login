@@ -20,4 +20,5 @@ module.exports = function(app) {
   app.post('/api/user/check',controller.checkPass);
   app.post('/api/user/budgetInsert',controller.insert_budget);
   app.post('/api/user/budget',controller.getbudget);
+  app.post('/api/user/allbudget',controller.getAllBudget);
 };
