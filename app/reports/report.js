@@ -1122,7 +1122,7 @@ exports.revealDetail = async (req, res, next) => {
 
   }
 };
-
+//done
 exports.buylist = async (req, res, next) => {
   try {
     const list = await sequelize.query(
@@ -1353,11 +1353,11 @@ exports.buyform = async (req, res, next) => {
 
 exports.returns = async (req, res, next) => {
   try {
-    const { id } = req.params;
+    const { id3 } = req.params;
     const list = await sequelize.query(
       `SELECT rt.id,rt.status,rt.re_name,rt.createdAt FROM returns AS rt 
       INNER JOIN users ON rt.userId = users.id
-      WHERE rt.userId = ${id}`,
+      WHERE rt.userId = ${id3} AND rt.status = true`,
       {
         nest: true,
         type: QueryTypes.SELECT
@@ -1366,7 +1366,7 @@ exports.returns = async (req, res, next) => {
     var length = list.length;
     var rows = [];
     rows.push([
-      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อเจ้าหน้าที่', style: 'fillheader' },
+      { text: 'ลำดับที่', style: 'fillheader' }, { text: 'ชื่อเจ้าหน้าที่', style: 'fillheader' },
       { text: 'สถานะ', style: 'fillheader' }, { text: 'เวลาที่เสนอ', style: 'fillheader' }
     ]);
     var status = '';
@@ -1381,7 +1381,52 @@ exports.returns = async (req, res, next) => {
       fullname = list[i].re_name;
       date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].id, fullname, status, date]);
+
+      var dates = list[i].createdAt.toISOString()
+      console.log(dates)
+    var month = dates.substring(5, 7)
+    var year = +((dates).substring(2, 4)) + 43
+    var day = (dates).substring(8, 10)
+    var THmonth
+    switch (+month) {
+      case 1:
+        THmonth = ' ม.ค. '
+        break;
+      case 2:
+        THmonth = ' ก.พ. '
+        break;
+      case 3:
+        THmonth = ' มี.ค. '
+        break;
+      case 4:
+        THmonth = ' เม.ย. '
+        break;
+      case 5:
+        THmonth = ' พ.ค. '
+        break;
+      case 6:
+        THmonth = ' มิ.ย. '
+        break;
+      case 7:
+        THmonth = ' ก.ค. '
+        break;
+      case 8:
+        THmonth = ' ส.ค. '
+        break;
+      case 9:
+        THmonth = ' ก.ย. '
+        break;
+      case 10:
+        THmonth = ' ตุ.ค. '
+        break;
+      case 11:
+        THmonth = ' พฤ.ย. '
+        break;
+      case 12:
+        THmonth = ' ธ.ค. '
+    }
+    var THdate = day + THmonth + year
+      rows.push([i+1, fullname, status, THdate]);
     }
 
 
@@ -1394,25 +1439,26 @@ exports.returns = async (req, res, next) => {
         ]
       },
       content: [
-        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
-        { text: 'รายการการคืนครุภัณฑ์', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
+        { text: 'ใบรายการคืนครุภัณฑ์ ', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 0], alignment: 'center' },
+        { text: 'ส่วนราชการ สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 0], alignment: 'center' },
+        { text: 'หน่วยงาน โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
             widths: ['auto', 150, '*', 150],
             body: rows
           },
-          layout: {
-            fillColor: function (rowIndex, node, columnIndex) {
-              return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
-            }
-          }
+          // layout: {
+          //   fillColor: function (rowIndex, node, columnIndex) {
+          //     return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+          //   }
+          // }
         }
       ],
       styles: {
         fillheader: {
           fontSize: 18,
           bold: true,
-          fillColor: '#60BF6A'
+          fillColor: '#A9A9A9'
         }
       },
       defaultStyle: {
@@ -1441,7 +1487,9 @@ exports.returnsAll = async (req, res, next) => {
     const { id } = req.params;
     const list = await sequelize.query(
       `SELECT rt.id,rt.status,rt.re_name,rt.createdAt FROM returns AS rt 
-      LEFT JOIN users ON rt.userId = users.id`,
+      LEFT JOIN users ON rt.userId = users.id
+      WHERE rt.status = true
+      `,
       {
         nest: true,
         type: QueryTypes.SELECT
@@ -1450,7 +1498,7 @@ exports.returnsAll = async (req, res, next) => {
     var length = list.length;
     var rows = [];
     rows.push([
-      { text: 'No.', style: 'fillheader' }, { text: 'ชื่อเจ้าหน้าที่', style: 'fillheader' },
+      { text: 'ลำดับที่', style: 'fillheader' }, { text: 'ชื่อเจ้าหน้าที่', style: 'fillheader' },
       { text: 'สถานะ', style: 'fillheader' }, { text: 'เวลาที่เสนอ', style: 'fillheader' }
     ]);
     var status = '';
@@ -1465,7 +1513,51 @@ exports.returnsAll = async (req, res, next) => {
       fullname = list[i].re_name;
       date = (Date(list[i].createdAt)).substring(0, 24);
       console.log(date);
-      rows.push([+list[i].id, fullname, status, date]);
+      var dates = list[i].createdAt.toISOString()
+      console.log(dates)
+    var month = dates.substring(5, 7)
+    var year = +((dates).substring(2, 4)) + 43
+    var day = (dates).substring(8, 10)
+    var THmonth
+    switch (+month) {
+      case 1:
+        THmonth = ' ม.ค. '
+        break;
+      case 2:
+        THmonth = ' ก.พ. '
+        break;
+      case 3:
+        THmonth = ' มี.ค. '
+        break;
+      case 4:
+        THmonth = ' เม.ย. '
+        break;
+      case 5:
+        THmonth = ' พ.ค. '
+        break;
+      case 6:
+        THmonth = ' มิ.ย. '
+        break;
+      case 7:
+        THmonth = ' ก.ค. '
+        break;
+      case 8:
+        THmonth = ' ส.ค. '
+        break;
+      case 9:
+        THmonth = ' ก.ย. '
+        break;
+      case 10:
+        THmonth = ' ตุ.ค. '
+        break;
+      case 11:
+        THmonth = ' พฤ.ย. '
+        break;
+      case 12:
+        THmonth = ' ธ.ค. '
+    }
+    var THdate = day + THmonth + year
+      rows.push([+list[i].id, fullname, status, THdate]);
     }
 
 
@@ -1478,25 +1570,26 @@ exports.returnsAll = async (req, res, next) => {
         ]
       },
       content: [
-        { text: 'โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 80, 0, 0], alignment: 'center' },
-        { text: 'รายการการคืนครุภัณฑ์', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
+        { text: 'ใบรายการคืนครุภัณฑ์ ', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 0], alignment: 'center' },
+        { text: 'ส่วนราชการ สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 0], alignment: 'center' },
+        { text: 'หน่วยงาน โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
         {
           table: {
             widths: ['auto', 150, '*', 150],
             body: rows
           },
-          layout: {
-            fillColor: function (rowIndex, node, columnIndex) {
-              return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
-            }
-          }
+          // layout: {
+          //   fillColor: function (rowIndex, node, columnIndex) {
+          //     return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+          //   }
+          // }
         }
       ],
       styles: {
         fillheader: {
           fontSize: 18,
           bold: true,
-          fillColor: '#60BF6A'
+          fillColor: '#A9A9A9'
         }
       },
       defaultStyle: {
