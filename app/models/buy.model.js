@@ -18,7 +18,7 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.INTEGER(4)
         },
         store: {
-            type: Sequelize.TEXT(50)
+            type: Sequelize.TEXT
         },
         name: {
             type: Sequelize.STRING(55)

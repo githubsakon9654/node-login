@@ -27,17 +27,17 @@ db.sequelize = sequelize;
 db.user = require("../models/user.model.js")(sequelize, Sequelize);
 db.role = require("../models/role.model.js")(sequelize, Sequelize);
 db.supplie = require("../models/supplies.model.js")(sequelize, Sequelize);
-db.offer = require("../models/offer.model.js")(sequelize, Sequelize);
-db.buyform = require("./buyform.model.js")(sequelize, Sequelize);
-db.reveal = require("./reveal.model.js")(sequelize, Sequelize);
+db.store = require('./store.model.js')(sequelize,Sequelize);
 db.durable = require("./durable.model.js")(sequelize, Sequelize);
+db.offer = require("../models/offer.model.js")(sequelize, Sequelize);
+db.budget = require('./budget.model.js')(sequelize, Sequelize);
+db.reveal = require("./reveal.model.js")(sequelize, Sequelize);
 db.borrow = require("./borrow.model.js")(sequelize, Sequelize);
 db.returns = require('./return.model.js')(sequelize, Sequelize);
 db.repair = require('./repair.model.js')(sequelize,Sequelize);
 db.supplie_year = require('./supplie_year.model.js')(sequelize,Sequelize);
-db.budget = require('./budget.model.js')(sequelize, Sequelize);
-db.store = require('./store.model.js')(sequelize,Sequelize);
 db.year_unit = require('./year_unit.model.js')(sequelize,Sequelize);
+db.buyform = require("./buy.model")(sequelize, Sequelize);
 
 
 

@@ -49,6 +49,7 @@ exports.insert_buy_sup = (req,res) => {
             {
                 status: false,
                 repel: false,
+                name:req.body.name,
                 buyprice: req.body.buyprice,
                 userId: req.body.userId,
             }

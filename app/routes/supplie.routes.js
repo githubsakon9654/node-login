@@ -12,5 +12,6 @@ module.exports = function(app) {
     app.post("/api/supplie/unitup", controller.updateUnit);
     app.post("/api/supplie/deleteunit", controller.deleteunit);
     app.get("/api/supplie/store", controller.store);
+    app.post("/api/supplie/storeinsert", controller.insertStore);
     app.post("/api/supplie/new", controller.listAll_supplie);
 };
