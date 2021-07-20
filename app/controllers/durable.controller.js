@@ -1,25 +1,26 @@
-
 const db = require("../models");
 const Durable = db.durable;
+const Ducate = db.ducate;
 const { QueryTypes } = require('sequelize');
 const { sequelize } = require("../models");
 const Op = db.Sequelize.Op;
-const time = new Date
+const time = new Date;
 
 
-exports.listAll_durable = async(req,res) => {
-    try{
+exports.listAll_durable = async(req, res) => {
+    try {
         // const durables = await Durable.findAll();
         const durables = await sequelize.query(
             `
-            SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,db.userId,db.date,db.du_price,db.get FROM durables AS db
+            SELECT db.id,db.du_name,db.du_status,db.du_serial,clas.name,db.userId,db.date,db.du_price,db.get FROM durables AS db
             LEFT JOIN users ON users.id = db.userId 
-            `,{
+            LEFT JOIN clas ON users.claId = clas.id
+            `, {
                 nest: true,
                 type: QueryTypes.SELECT
             }
-        )
-        res.json({durable: durables});
+        );
+        res.json({ durable: durables });
     } catch (e) {
         res.status(403).json({
             message: e
@@ -27,8 +28,8 @@ exports.listAll_durable = async(req,res) => {
     }
 };
 
-exports.listUser_durable = async(req,res) => {
-    try{
+exports.listUser_durable = async(req, res) => {
+    try {
         // const durables = await Durable.findAll({
         //     where: {
         //         userId: req.body.id
@@ -39,13 +40,12 @@ exports.listUser_durable = async(req,res) => {
             SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,db.userId,db.date,db.du_price,db.get FROM durables AS db
             INNER JOIN users ON users.id = db.userId
             WHERE db.userId = ${req.body.id}
-            `,
-            {
+            `, {
                 nest: true,
                 type: QueryTypes.SELECT
             }
-        )
-        res.json({durable: durables});
+        );
+        res.json({ durable: durables });
     } catch (e) {
         res.status(403).json({
             message: e
@@ -53,8 +53,24 @@ exports.listUser_durable = async(req,res) => {
     }
 };
 
-exports.createDurable = async (req,res) => {
-    try{
+exports.createDurableCate = async(req, res) => {
+    try {
+        const ducate = await Ducate.create({...req.body });
+        res.json({ ducate: ducate });
+    } catch (e) {
+        res.status(403).json({ message: e.errors[0].message });
+    }
+};
+exports.findDurableCate = async(req, res) => {
+    try {
+        const ducate = await Ducate.findAll();
+        res.json({ ducate: ducate });
+    } catch (e) {
+        res.status(403).json({ message: e.errors[0].message });
+    }
+};
+exports.createDurable = async(req, res) => {
+    try {
         // const durable = await Durable.create({
         //     du_name: req.body.du_name,
         //     du_status: req.body.du_status
@@ -63,36 +79,37 @@ exports.createDurable = async (req,res) => {
         //     console.log(Date(du.createdAt))
         //     du.update({du_serial:date},{where:{id:du.id}})
         // })
-        const date = Date(req.body.date)
+        const date = Date(req.body.date);
         const durable = await Durable.create({
             du_name: req.body.du_name,
             du_status: req.body.du_status,
             du_price: req.body.du_price,
             get: req.body.get,
-            userId:null,
+            userId: null,
             date: req.body.date,
-            du_serial: req.body.du_serial
-        })
+            du_serial: req.body.du_serial,
+            ducateId: req.body.ducateId
+        });
 
-        res.json({durable:durable});
+        res.json({ durable: durable });
     } catch (e) {
-        res.status(403).json({message: e.errors[0].message});
+        res.status(403).json({ message: e.errors[0].message });
     }
 };
 
-exports.updateDurable = async(req,res) => {
-    try{
-        const durable = await Durable.update({...req.body},{where: {id: req.body.id}});
+exports.updateDurable = async(req, res) => {
+    try {
+        const durable = await Durable.update({...req.body }, { where: { id: req.body.id } });
         res.json({
             message: `This Column Updated is ${durable? true: false}`
         });
     } catch (e) {
-        res.status(403).json({message: e.errors[0].message});
+        res.status(403).json({ message: e.errors[0].message });
     }
 };
 
-exports.deleteDurable = async (req, res) => {
-    try{
+exports.deleteDurable = async(req, res) => {
+    try {
         const durable = await sequelize.query(`DELETE FROM durables WHERE id = ${req.body.id}`);
         res.json({
             message: `number of delete is ${durable? true: false}`
@@ -104,10 +121,10 @@ exports.deleteDurable = async (req, res) => {
     }
 };
 
-exports.fillter = async (req, res) => {
+exports.fillter = async(req, res) => {
     const filter = req.body.filter;
     console.log(filter);
-    try{
+    try {
         const durable = await Durable.findAll({
             where: {
                 du_name: {
@@ -116,7 +133,7 @@ exports.fillter = async (req, res) => {
                 userId: null
             }
         });
-        if(durable === null){
+        if (durable === null) {
             res.json({
                 message: 'This Durable Not Found!'
             });
@@ -126,7 +143,7 @@ exports.fillter = async (req, res) => {
         res.json({
             return: durable
         });
-    } catch(e) {
+    } catch (e) {
         res.status(403).json({
             message: e
         });
@@ -134,13 +151,13 @@ exports.fillter = async (req, res) => {
     }
 };
 
-exports.update_appove_null = async (req, res) => {
-    try{
-        const durable = await Durable.update({...req.body},{where: {id: req.body.id}});
+exports.update_appove_null = async(req, res) => {
+    try {
+        const durable = await Durable.update({...req.body }, { where: { id: req.body.id } });
         res.json({
             message: `This Column Updated is ${durable? true: false}`
         });
     } catch (e) {
-        res.status(403).json({message: e.errors[0].message});
+        res.status(403).json({ message: e.errors[0].message });
     }
 };

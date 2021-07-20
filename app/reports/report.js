@@ -75,7 +75,7 @@ exports.supplieList = async(req, res, next) => {
             return {
                 columns: [
                     { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                    { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                    { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                     { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                 ]
             };
@@ -91,7 +91,26 @@ exports.supplieList = async(req, res, next) => {
                     widths: ['auto', '*', 'auto', 'auto', 'auto'],
                     body: rows
                 },
-                layout: 'headerLineOnly'
+                layout: {
+                    hLineWidth: function(i, node) {
+                        if (i === 0) {
+                            return 0;
+                        }
+                        return (i === node.table.body.length);
+                    },
+                    vLineWidth: function(i) {
+                        return 0;
+                    },
+                    hLineColor: function(i, node) {
+                        return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                    },
+                    paddingLeft: function(i) {
+                        return i === 0 ? 0 : 8;
+                    },
+                    paddingRight: function(i, node) {
+                        return 0;
+                    }
+                }
             }
         ],
         images: {
@@ -223,7 +242,7 @@ exports.durableList = async(req, res, next) => {
             return {
                 columns: [
                     { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                    { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                    { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                     { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                 ]
             };
@@ -394,7 +413,7 @@ exports.offerList = async(req, res, next) => {
                 return {
                     columns: [
                         { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };
@@ -410,7 +429,26 @@ exports.offerList = async(req, res, next) => {
                         widths: ['auto', 200, '*', 'auto'],
                         body: rows
                     },
-                    layout: 'headerLineOnly'
+                    layout: {
+                        hLineWidth: function(i, node) {
+                            if (i === 0) {
+                                return 0;
+                            }
+                            return (i === node.table.body.length);
+                        },
+                        vLineWidth: function(i) {
+                            return 0;
+                        },
+                        hLineColor: function(i, node) {
+                            return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                        },
+                        paddingLeft: function(i) {
+                            return i === 0 ? 0 : 8;
+                        },
+                        paddingRight: function(i, node) {
+                            return 0;
+                        }
+                    }
                 }
             ],
             images: {
@@ -546,7 +584,7 @@ exports.borrowList = async(req, res, next) => {
                 return {
                     columns: [
                         { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };
@@ -562,7 +600,26 @@ exports.borrowList = async(req, res, next) => {
                         widths: ['auto', 100, '*', '*', 'auto'],
                         body: rows
                     },
-                    layout: 'headerLineOnly'
+                    layout: {
+                        hLineWidth: function(i, node) {
+                            if (i === 0) {
+                                return 0;
+                            }
+                            return (i === node.table.body.length);
+                        },
+                        vLineWidth: function(i) {
+                            return 0;
+                        },
+                        hLineColor: function(i, node) {
+                            return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                        },
+                        paddingLeft: function(i) {
+                            return i === 0 ? 0 : 8;
+                        },
+                        paddingRight: function(i, node) {
+                            return 0;
+                        }
+                    }
                 }
             ],
             images: {
@@ -699,7 +756,7 @@ exports.borrowListByUser = async(req, res, next) => {
                 return {
                     columns: [
                         { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };
@@ -715,7 +772,26 @@ exports.borrowListByUser = async(req, res, next) => {
                         widths: ['auto', 100, '*', '*', 'auto'],
                         body: rows
                     },
-                    layout: 'headerLineOnly'
+                    layout: {
+                        hLineWidth: function(i, node) {
+                            if (i === 0) {
+                                return 0;
+                            }
+                            return (i === node.table.body.length);
+                        },
+                        vLineWidth: function(i) {
+                            return 0;
+                        },
+                        hLineColor: function(i, node) {
+                            return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                        },
+                        paddingLeft: function(i) {
+                            return i === 0 ? 0 : 8;
+                        },
+                        paddingRight: function(i, node) {
+                            return 0;
+                        }
+                    }
                 }
             ],
             images: {
@@ -752,9 +828,9 @@ exports.revealList = async(req, res, next) => {
     try {
         var { id3 } = req.params;
         const list = await sequelize.query(
-            `SELECT db.id,db.admin_approve,db.dire_approvev,users.fullname,db.createdAt,db.total_price FROM reveals AS db 
+            `SELECT db.id,db.admin_approve,users.fullname,db.createdAt,db.total_price FROM reveals AS db 
       LEFT JOIN users ON db.userId = users.id
-      WHERE db.admin_approve = true AND db.dire_approvev
+      WHERE db.admin_approve = true 
       `, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -765,7 +841,7 @@ exports.revealList = async(req, res, next) => {
         rows.push([
             { text: 'ลำดับที่', style: 'fillheader' }, { text: 'ชื่อคนเบิกพัสดุ', style: 'fillheader' },
             { text: 'ราคา', style: 'fillheader' }, { text: 'เจ้าหน้าที่', style: 'fillheader' },
-            { text: 'ผู้อำนวยการ', style: 'fillheader' }, { text: 'เวลาที่ขอเบิก', style: 'fillheader' }
+            { text: 'เวลาที่ขอเบิก', style: 'fillheader' }
         ]);
         var datet = '';
         var adstatus = '';
@@ -775,11 +851,6 @@ exports.revealList = async(req, res, next) => {
         console.log(fulname[0].fullname);
         var fname = fulname[0].fullname;
         for (var i = 0; i < length; i++) {
-            if (!list[i].dire_approvev) {
-                distatus = 'ยังไม่อนุมัติ';
-            } else {
-                distatus = 'อนุมัติ';
-            }
             if (!list[i].admin_approve) {
                 adstatus = 'ยังไม่อนุมัติ';
             } else {
@@ -833,7 +904,7 @@ exports.revealList = async(req, res, next) => {
                     THmonth = ' ธ.ค. ';
             }
             var THdate = day + THmonth + year;
-            rows.push([i + 1, fullname, price, adstatus, distatus, THdate]);
+            rows.push([i + 1, fullname, price, adstatus, THdate]);
         }
 
 
@@ -852,7 +923,7 @@ exports.revealList = async(req, res, next) => {
                 return {
                     columns: [
                         { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };
@@ -865,10 +936,29 @@ exports.revealList = async(req, res, next) => {
                 {
                     table: {
 
-                        widths: ['auto', 150, '*', 'auto', 'auto', '*'],
+                        widths: ['auto', 150, '*', 'auto', '*'],
                         body: rows
                     },
-                    layout: 'headerLineOnly'
+                    layout: {
+                        hLineWidth: function(i, node) {
+                            if (i === 0) {
+                                return 0;
+                            }
+                            return (i === node.table.body.length);
+                        },
+                        vLineWidth: function(i) {
+                            return 0;
+                        },
+                        hLineColor: function(i, node) {
+                            return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                        },
+                        paddingLeft: function(i) {
+                            return i === 0 ? 0 : 8;
+                        },
+                        paddingRight: function(i, node) {
+                            return 0;
+                        }
+                    }
                 }
             ],
             images: {
@@ -905,9 +995,9 @@ exports.revealByUser = async(req, res, next) => {
     try {
         const { id3 } = req.params;
         const list = await sequelize.query(
-            `SELECT db.id,db.admin_approve,db.dire_approvev,users.fullname,db.createdAt,db.total_price FROM reveals AS db 
+            `SELECT db.id,db.admin_approve,users.fullname,db.createdAt,db.total_price FROM reveals AS db 
       LEFT JOIN users ON db.userId = users.id
-      WHERE db.userId = ${id3} AND db.admin_approve = true AND db.dire_approvev`, {
+      WHERE db.userId = ${id3} AND db.admin_approve = true`, {
                 nest: true,
                 type: QueryTypes.SELECT
             }
@@ -917,7 +1007,7 @@ exports.revealByUser = async(req, res, next) => {
         rows.push([
             { text: 'ลำดับที่', style: 'fillheader' }, { text: 'ชื่อคนเบิกพัสดุ', style: 'fillheader' },
             { text: 'ราคา', style: 'fillheader' }, { text: 'เจ้าหน้าที่', style: 'fillheader' },
-            { text: 'ผู้อำนวยการ', style: 'fillheader' }, { text: 'เวลาที่ขอเบิก', style: 'fillheader' }
+            { text: 'เวลาที่ขอเบิก', style: 'fillheader' }
         ]);
         var date = '';
         var adstatus = '';
@@ -927,11 +1017,7 @@ exports.revealByUser = async(req, res, next) => {
         console.log(fulname[0].fullname);
         var fname = fulname[0].fullname;
         for (var i = 0; i < length; i++) {
-            if (!list[i].dire_approvev) {
-                distatus = 'ยังไม่อนุมัติ';
-            } else {
-                distatus = 'อนุมัติ';
-            }
+
             if (!list[i].admin_approve) {
                 adstatus = 'ยังไม่อนุมัติ';
             } else {
@@ -985,7 +1071,7 @@ exports.revealByUser = async(req, res, next) => {
                     THmonth = ' ธ.ค. ';
             }
             var THdate = day + THmonth + year;
-            rows.push([i + 1, fullname, price, adstatus, distatus, THdate]);
+            rows.push([i + 1, fullname, price, adstatus, THdate]);
         }
 
 
@@ -1004,7 +1090,7 @@ exports.revealByUser = async(req, res, next) => {
                 return {
                     columns: [
                         { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };
@@ -1020,7 +1106,26 @@ exports.revealByUser = async(req, res, next) => {
                         widths: ['auto', 150, '*', 'auto', 'auto', 150],
                         body: rows
                     },
-                    layout: 'headerLineOnly'
+                    layout: {
+                        hLineWidth: function(i, node) {
+                            if (i === 0) {
+                                return 0;
+                            }
+                            return (i === node.table.body.length);
+                        },
+                        vLineWidth: function(i) {
+                            return 0;
+                        },
+                        hLineColor: function(i, node) {
+                            return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                        },
+                        paddingLeft: function(i) {
+                            return i === 0 ? 0 : 8;
+                        },
+                        paddingRight: function(i, node) {
+                            return 0;
+                        }
+                    }
                 }
             ],
             images: {
@@ -1057,11 +1162,12 @@ exports.revealDetail = async(req, res, next) => {
     try {
         const { id } = req.params;
         const list = await sequelize.query(
-            `SELECT bf.id,bf.total_price,sup.supplie_name,users.fullname,users.classes,
+            `SELECT bf.id,bf.total_price,sup.supplie_name,users.fullname,clas.name,
       sup.price,sb.unit,sup.unit_name,sb.supplieId,bf.createdAt FROM reveals AS bf
       INNER JOIN reveal_sup AS sb ON bf.id = sb.revealId
       INNER JOIN supplies AS sup ON sb.supplieId = sup.id
       INNER JOIN users ON bf.userId = users.id
+      INNER JOIN clas ON users.claId = clas.id
       WHERE bf.id = ${id}`, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -1070,7 +1176,7 @@ exports.revealDetail = async(req, res, next) => {
         console.log(req.params + 'dddd');
         var length = list.length;
         var name = list[0].fullname;
-        var classes = list[0].classes;
+        var classes = list[0].name;
         var total = list[0].total_price;
         var unit = 0;
         var rows = [];
@@ -1332,7 +1438,7 @@ exports.buylist = async(req, res, next) => {
                 return {
                     columns: [
                         { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };
@@ -1347,7 +1453,26 @@ exports.buylist = async(req, res, next) => {
                         widths: ['auto', 150, '*', '*', 150],
                         body: rows
                     },
-                    layout: 'headerLineOnly'
+                    layout: {
+                        hLineWidth: function(i, node) {
+                            if (i === 0) {
+                                return 0;
+                            }
+                            return (i === node.table.body.length);
+                        },
+                        vLineWidth: function(i) {
+                            return 0;
+                        },
+                        hLineColor: function(i, node) {
+                            return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                        },
+                        paddingLeft: function(i) {
+                            return i === 0 ? 0 : 8;
+                        },
+                        paddingRight: function(i, node) {
+                            return 0;
+                        }
+                    }
                 }
             ],
             images: {
@@ -1385,11 +1510,12 @@ exports.buyform = async(req, res, next) => {
 
         const { id } = req.params;
         const list = await sequelize.query(
-            `SELECT bf.id,bf.buyprice,sup.supplie_name,users.fullname,users.classes,
+            `SELECT bf.id,bf.buyprice,sup.supplie_name,users.fullname,clas.name,
       sup.price,sb.unit,sup.unit_name,sb.supplieId FROM buyforms AS bf
       INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
       INNER JOIN supplies AS sup ON sb.supplieId = sup.id
       INNER JOIN users ON bf.userId = users.id
+      INNER JOIN clas ON users.id = clas.id
       WHERE bf.id = ${id}`, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -1402,7 +1528,7 @@ exports.buyform = async(req, res, next) => {
         console.log(fulname[0].fullname);
         var fname = fulname[0].fullname;
         var name = list[0].fullname;
-        var classes = list[0].classes;
+        var classes = list[0].name;
         var total = new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(list[0].buyprice);
         var unit = 0;
         rows.push([
@@ -1440,7 +1566,7 @@ exports.buyform = async(req, res, next) => {
                 return {
                     columns: [
                         { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };
@@ -1590,7 +1716,7 @@ exports.returns = async(req, res, next) => {
                 return {
                     columns: [
                         { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };
@@ -1605,12 +1731,31 @@ exports.returns = async(req, res, next) => {
                         widths: ['auto', 150, '*', 150],
                         body: rows
                     },
-                    layout: 'headerLineOnly'
-                        // layout: {
-                        //   fillColor: function (rowIndex, node, columnIndex) {
-                        //     return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
-                        //   }
-                        // }
+                    layout: {
+                        hLineWidth: function(i, node) {
+                            if (i === 0) {
+                                return 0;
+                            }
+                            return (i === node.table.body.length);
+                        },
+                        vLineWidth: function(i) {
+                            return 0;
+                        },
+                        hLineColor: function(i, node) {
+                            return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                        },
+                        paddingLeft: function(i) {
+                            return i === 0 ? 0 : 8;
+                        },
+                        paddingRight: function(i, node) {
+                            return 0;
+                        }
+                    }
+                    // layout: {
+                    //   fillColor: function (rowIndex, node, columnIndex) {
+                    //     return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+                    //   }
+                    // }
                 }
             ],
             images: {
@@ -1739,7 +1884,7 @@ exports.returnsAll = async(req, res, next) => {
                 return {
                     columns: [
                         { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };
@@ -1754,12 +1899,31 @@ exports.returnsAll = async(req, res, next) => {
                         widths: ['auto', 150, '*', 150],
                         body: rows
                     },
-                    layout: 'headerLineOnly'
-                        // layout: {
-                        //   fillColor: function (rowIndex, node, columnIndex) {
-                        //     return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
-                        //   }
-                        // }
+                    layout: {
+                        hLineWidth: function(i, node) {
+                            if (i === 0) {
+                                return 0;
+                            }
+                            return (i === node.table.body.length);
+                        },
+                        vLineWidth: function(i) {
+                            return 0;
+                        },
+                        hLineColor: function(i, node) {
+                            return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                        },
+                        paddingLeft: function(i) {
+                            return i === 0 ? 0 : 8;
+                        },
+                        paddingRight: function(i, node) {
+                            return 0;
+                        }
+                    }
+                    // layout: {
+                    //   fillColor: function (rowIndex, node, columnIndex) {
+                    //     return (rowIndex % 2 === 0) ? '#CCCCCC' : null;
+                    //   }
+                    // }
                 }
             ],
             images: {
@@ -1797,11 +1961,12 @@ exports.returnDetail = async(req, res, next) => {
 
         const { id } = req.params;
         const list = await sequelize.query(
-            `SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,users.classes,rt.createdAt
+            `SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,clas.name,rt.createdAt
       FROM returns AS rt
       INNER JOIN re_du AS rd ON rt.id = rd.returnId
       INNER JOIN durables AS db ON rd.duId = db.id
       INNER JOIN users ON rt.userId = users.id
+      INNER JOIN clas ON users.claId = clas.id
       WHERE rt.id = ${id}`, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -1813,8 +1978,9 @@ exports.returnDetail = async(req, res, next) => {
         // console.log(fulname[0].fullname);
         // var fname = fulname[0].fullname;
         var name = list[0].fullname;
-        var classes = list[0].classes;
+        var classes = list[0].name;
         var unit = 0;
+        console.log(classes);
         rows.push([
             { text: 'ลำดับที่', style: 'fillheader' }, { text: 'ชื่อครุภัณฑ์', style: 'fillheader' },
             { text: 'สภาพครุภัณฑ์', style: 'fillheader' }, { text: 'หมายเลขครุภัณฑ์', style: 'fillheader' }

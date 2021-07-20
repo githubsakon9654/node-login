@@ -6,6 +6,7 @@ module.exports = function(app) {
     app.post("/api/supplie/listall", controller.getNew);
     app.post("/api/supplie/update", controller.updateSupplie);
     app.post("/api/supplie/list", controller.getSupplie);
+    app.post("/api/supplie/remain", controller.getSupplieRemain);
     app.post("/api/supplie/delete", controller.deleteSuppie);
     app.post("/api/supplie/filter", controller.filter);
     app.post("/api/supplie/unit", controller.insertUnit);
@@ -14,4 +15,7 @@ module.exports = function(app) {
     app.get("/api/supplie/store", controller.store);
     app.post("/api/supplie/storeinsert", controller.insertStore);
     app.post("/api/supplie/new", controller.listAll_supplie);
+    app.get("/api/supplie/supcatefind", controller.supcatefind);
+    app.post("/api/supplie/supinsert", controller.supcateInsert);
+    app.post("/api/supplie/history", controller.getHistory);
 };

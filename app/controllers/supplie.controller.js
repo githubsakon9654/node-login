@@ -5,6 +5,7 @@ const Supplie = db.supplie;
 const SupYear = db.supplie_year;
 const Store = db.store;
 const YearUnit = db.year_unit;
+const Supcate = db.supcate;
 const Op = db.Sequelize.Op;
 
 exports.listAll_supplie = async(req, res) => {
@@ -39,6 +40,59 @@ exports.getSupplie = async(req, res) => {
             SELECT * FROM supplies AS sup
             INNER JOIN supplie_years AS sy ON sup.id = sy.supplieId
             WHERE sup.id = ${req.body.id} AND sy.year = "${req.body.year}"
+            `, {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        );
+        res.json({
+            supplie: supplie
+        });
+    } catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+};
+
+exports.getSupplieRemain = async(req, res) => {
+    try {
+        const supplie = await sequelize.query(
+            `
+            SELECT SUM(unit) as units FROM supplie_years 
+            WHERE supplie_years.supplieId = ${req.body.id} AND supplie_years.year = "${req.body.year}"
+            `, {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        );
+        res.json({
+            supplie: supplie
+        });
+    } catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+};
+
+exports.getHistory = async(req, res) => {
+    try {
+        const supplie = await sequelize.query(
+            `
+            SELECT bf.serial AS serial, bf.name AS name,sb.unit AS units,sb.sum,'-' AS unit, '-' AS price FROM buyforms AS bf
+            INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
+            INNER JOIN supplies AS s ON sb.supplieId = s.id
+            INNER JOIN supplie_years AS sy ON s.id = sy.supplieId
+            WHERE sb.supplieId = ${req.body.id}
+            UNION
+SELECT rv.serial AS serial,users.fullname AS name,'-' AS units,'-' AS sum,rs.unit,(rs.unit*s.price) AS price FROM reveals AS rv
+             INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
+             INNER JOIN supplies AS s ON rs.supplieId = s.id
+             INNER JOIN supplie_years AS sy ON s.id = sy.supplieId
+            LEFT JOIN users ON rv.userId = users.id
+            WHERE rs.supplieId = ${req.body.id}
+
             `, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -225,10 +279,10 @@ exports.updateUnit = async(req, res) => {
                     [Op.and]: [{ year: req.body.year }, { supplieId: req.body.supplieId }]
                 }
             });
-            const u = YearUnit.create({
-                unit: req.body.unit,
-                supplieYearId: unit[0].id
-            });
+            // const u = YearUnit.create({
+            //     unit: req.body.unit,
+            //     supplieYearId: unit[0].id
+            // });
             res.json({
                 unit: unit
             });
@@ -308,6 +362,28 @@ exports.store = async(req, res) => {
         res.json({
             store: store
         });
+    } catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+};
+
+exports.supcateInsert = async(req, res) => {
+    try {
+        const supcate = await Supcate.create({...req.body });
+        res.json({ supcate: supcate });
+    } catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+};
+
+exports.supcatefind = async(req, res) => {
+    try {
+        const supcate = await Supcate.findAll();
+        res.json({ supcate: supcate });
     } catch (e) {
         res.status(403).json({
             message: e

@@ -1,5 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-    const buyform = sequelize.define('buyform',{
+    const buyform = sequelize.define('buyform', {
         id: {
             type: Sequelize.INTEGER(4),
             primaryKey: true,
@@ -22,7 +22,10 @@ module.exports = (sequelize, Sequelize) => {
         },
         name: {
             type: Sequelize.STRING(55)
-        }    
+        },
+        serial: {
+            type: Sequelize.STRING(25)
+        }
     });
     return buyform;
 };
