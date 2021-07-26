@@ -11,7 +11,7 @@ exports.reveal_list_all = async(req, res) => {
         // const reveals = await Reveal.findAll();
         const reveals = await sequelize.query(
             `
-            SELECT rl.id,rl.admin_approve,rl.total_price,DATE_FORMAT(DATE_ADD(rl.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,
+            SELECT rl.serial,rl.id,rl.admin_approve,rl.total_price,DATE_FORMAT(DATE_ADD(rl.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,
             us.fullname,rl.accept FROM reveals as rl
             LEFT JOIN users AS us ON rl.userId = us.id
             `, {
@@ -126,14 +126,7 @@ exports.insert_reveal_sup = (req, res) => {
                         id: id
                     }
                 });
-                // SELECT rv.serial AS serial,users.fullname AS name FROM `reveals` AS rv
-                // INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
-                // LEFT JOIN users ON rv.userId = users.id
-                // WHERE rs.supplieId = 1
-                // UNION
-                // SELECT bf.serial AS serial, bf.name AS name FROM buyforms AS bf
-                // INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
-                // WHERE sb.supplieId = 1
+
             }
         });
     });

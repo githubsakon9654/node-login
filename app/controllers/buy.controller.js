@@ -2,6 +2,7 @@ const db = require("../models");
 const Op = db.Sequelize.Op;
 const Buyform = db.buyform;
 const Supplie = db.supplie;
+const Reveal = db.reveal;
 const { QueryTypes } = require('sequelize');
 const { sequelize } = require("../models");
 
@@ -25,10 +26,52 @@ exports.buyList = async(req, res) => {
 
 exports.setAccept = async(req, res) => {
     try {
-        var id = req.body.id;
+        const id = req.body.id;
+        console.log(req.body.id);
         const buy = await Buyform.update({ accept: true }, {
             where: {
                 id: id
+            }
+        });
+        sequelize.query(
+            `
+            SELECT MAX(serial) AS max FROM buyforms WHERE serial LIKE '%${req.body.year}'
+            `, {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        ).then(T => {
+            console.log('T' + T[0].max);
+            var tt = T[0].max;
+            if (T[0].max != null) {
+                console.log('T');
+                var num = T[0].max;
+                var serialRV = Number(num.substring(2, 3));
+                var SR = 'ร.' + (serialRV + 1) + '/' + req.body.year;
+                console.log('d' + serialRV);
+                console.log(SR);
+                Buyform.update({ serial: SR }, {
+                    where: {
+                        id: id
+                    }
+                });
+            } else {
+                console.log('55');
+                var SR2 = 'ร.' + 1 + '/' + req.body.year;
+                console.log(SR2);
+                Buyform.update({ serial: SR2 }, {
+                    where: {
+                        id: id
+                    }
+                });
+                // SELECT rv.serial AS serial,users.fullname AS name FROM `reveals` AS rv
+                // INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
+                // LEFT JOIN users ON rv.userId = users.id
+                // WHERE rs.supplieId = 1
+                // UNION
+                // SELECT bf.serial AS serial, bf.name AS name FROM buyforms AS bf
+                // INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
+                // WHERE sb.supplieId = 1
             }
         });
         res.json({ buyform: buy });
@@ -64,7 +107,7 @@ exports.insert_buy_sup = (req, res) => {
         repel: false,
         name: req.body.name,
         buyprice: req.body.buyprice,
-        userId: req.body.userId,
+        userId: req.body.userId
     }).then(buy => {
         const id = buy.id;
         if (req.body.supplie) {
@@ -95,48 +138,48 @@ exports.insert_buy_sup = (req, res) => {
         } else {
             res.send({ message: 'insert buyform fail' });
         }
-        sequelize.query(
-            `
-            SELECT MAX(serial) AS max FROM buyforms WHERE serial LIKE '%${req.body.year}'
-            `, {
-                nest: true,
-                type: QueryTypes.SELECT
-            }
-        ).then(T => {
-            console.log('T' + T[0].max);
-            var tt = T[0].max;
-            if (T[0].max != null) {
-                console.log('T');
-                res.json({ t: T });
-                var num = T[0].max;
-                var serialRV = Number(num.substring(2, 3));
-                var SR = 'ร.' + (serialRV + 1) + '/' + req.body.year;
-                console.log('d' + serialRV);
-                console.log(SR);
-                Buyform.update({ serial: SR }, {
-                    where: {
-                        id: id
-                    }
-                });
-            } else {
-                console.log('55');
-                var SR2 = 'ร.' + 1 + '/' + req.body.year;
-                console.log(SR2);
-                Buyform.update({ serial: SR2 }, {
-                    where: {
-                        id: id
-                    }
-                });
-                // SELECT rv.serial AS serial,users.fullname AS name FROM `reveals` AS rv
-                // INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
-                // LEFT JOIN users ON rv.userId = users.id
-                // WHERE rs.supplieId = 1
-                // UNION
-                // SELECT bf.serial AS serial, bf.name AS name FROM buyforms AS bf
-                // INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
-                // WHERE sb.supplieId = 1
-            }
-        });
+        // sequelize.query(
+        //     `
+        //     SELECT MAX(serial) AS max FROM buyforms WHERE serial LIKE '%${req.body.year}'
+        //     `, {
+        //         nest: true,
+        //         type: QueryTypes.SELECT
+        //     }
+        // ).then(T => {
+        //     console.log('T' + T[0].max);
+        //     var tt = T[0].max;
+        //     if (T[0].max != null) {
+        //         console.log('T');
+        //         res.json({ t: T });
+        //         var num = T[0].max;
+        //         var serialRV = Number(num.substring(2, 3));
+        //         var SR = 'ร.' + (serialRV + 1) + '/' + req.body.year;
+        //         console.log('d' + serialRV);
+        //         console.log(SR);
+        //         Buyform.update({ serial: SR }, {
+        //             where: {
+        //                 id: id
+        //             }
+        //         });
+        //     } else {
+        //         console.log('55');
+        //         var SR2 = 'ร.' + 1 + '/' + req.body.year;
+        //         console.log(SR2);
+        //         Buyform.update({ serial: SR2 }, {W
+        //             where: {
+        //                 id: id
+        //             }
+        //         });
+        //         // SELECT rv.serial AS serial,users.fullname AS name FROM `reveals` AS rv
+        //         // INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
+        //         // LEFT JOIN users ON rv.userId = users.id
+        //         // WHERE rs.supplieId = 1
+        //         // UNION
+        //         // SELECT bf.serial AS serial, bf.name AS name FROM buyforms AS bf
+        //         // INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
+        //         // WHERE sb.supplieId = 1
+        //     }
+        // });
     });
 };
 
