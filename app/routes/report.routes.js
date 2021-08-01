@@ -14,4 +14,5 @@ module.exports = function(app) {
     app.get('/api/report/returnDetail/:id', controller.returnDetail);
     app.get('/api/report/buyform/:id', controller.buyform);
     app.get('/api/report/revealdetail/:id', controller.revealDetail);
+    app.get('/api/report/suppliehistory/:id/:id2/:id3', controller.supplieDetailList);
 };

@@ -105,7 +105,7 @@ exports.insert_reveal_sup = (req, res) => {
             var tt = T[0].max;
             if (T[0].max != null) {
                 console.log('T');
-                res.json({ t: T });
+                // res.json({ t: T });
                 var num = T[0].max;
                 console.log(num);
                 var serialRV = Number(num.substring(2, 3));
@@ -200,10 +200,10 @@ exports.fill_date = async(req, res) => {
                 nest: true,
                 type: QueryTypes.SELECT
             }
-        )
+        );
         res.json({
             date: reveal
-        })
+        });
     } catch (e) {
         res.status(403).json({
             message: e

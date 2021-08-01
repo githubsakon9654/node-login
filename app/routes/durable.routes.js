@@ -10,4 +10,5 @@ module.exports = function(app) {
     app.post('/api/durable/updatenull', controller.update_appove_null);
     app.post('/api/durable/insertcate', controller.createDurableCate);
     app.get('/api/durable/ducate', controller.findDurableCate);
+    app.post('/api/durable/ducatebyid', controller.findDurableCateByid);
 };

@@ -7,4 +7,5 @@ module.exports = function(app) {
     app.post('/api/buy/update', controller.set_buy_status);
     app.post('/api/buy/filldate', controller.fillDate);
     app.post('/api/buy/accept', controller.setAccept);
+    app.post('/api/buy/remain', controller.setremain);
 };

@@ -11,7 +11,7 @@ exports.buyList = async(req, res) => {
         // const buy = await Buyform.findAll();
         const buy = await sequelize.query(
             `
-            SELECT id,name,status,repel,accept,buyprice,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM buyforms
+            SELECT serial,id,name,status,repel,accept,buyprice,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM buyforms
             `, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -31,47 +31,6 @@ exports.setAccept = async(req, res) => {
         const buy = await Buyform.update({ accept: true }, {
             where: {
                 id: id
-            }
-        });
-        sequelize.query(
-            `
-            SELECT MAX(serial) AS max FROM buyforms WHERE serial LIKE '%${req.body.year}'
-            `, {
-                nest: true,
-                type: QueryTypes.SELECT
-            }
-        ).then(T => {
-            console.log('T' + T[0].max);
-            var tt = T[0].max;
-            if (T[0].max != null) {
-                console.log('T');
-                var num = T[0].max;
-                var serialRV = Number(num.substring(2, 3));
-                var SR = 'ร.' + (serialRV + 1) + '/' + req.body.year;
-                console.log('d' + serialRV);
-                console.log(SR);
-                Buyform.update({ serial: SR }, {
-                    where: {
-                        id: id
-                    }
-                });
-            } else {
-                console.log('55');
-                var SR2 = 'ร.' + 1 + '/' + req.body.year;
-                console.log(SR2);
-                Buyform.update({ serial: SR2 }, {
-                    where: {
-                        id: id
-                    }
-                });
-                // SELECT rv.serial AS serial,users.fullname AS name FROM `reveals` AS rv
-                // INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
-                // LEFT JOIN users ON rv.userId = users.id
-                // WHERE rs.supplieId = 1
-                // UNION
-                // SELECT bf.serial AS serial, bf.name AS name FROM buyforms AS bf
-                // INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
-                // WHERE sb.supplieId = 1
             }
         });
         res.json({ buyform: buy });
@@ -187,10 +146,11 @@ exports.get_by_id = async(req, res) => {
     try {
         const buy = await sequelize.query(
             `SELECT bf.repel,bf.accept,bf.store, bf.id,bf.status,bf.buyprice,users.fullname,sup.supplie_name,
-            sup.price,sb.unit,sup.unit_name,sb.supplieId,clas.name FROM buyforms AS bf
+            sup.price,sb.unit,sup.unit_name,sb.supplieId,clas.name,sto.name FROM buyforms AS bf
             INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
             INNER JOIN users ON users.id = bf.userId
             INNER JOIN supplies AS sup ON sb.supplieId = sup.id
+            INNER JOIN stores as sto ON sup.storeId = sto.id
             INNER JOIN clas ON users.claId = clas.id
             WHERE bf.id = ${req.body.id}`, {
                 nest: true,
@@ -207,7 +167,50 @@ exports.get_by_id = async(req, res) => {
 
 exports.set_buy_status = async(req, res) => {
     try {
+        const id = req.body.id;
         const update = await Buyform.update({...req.body }, { where: { id: req.body.id } });
+        sequelize.query(
+            `
+            SELECT MAX(serial) AS max FROM buyforms WHERE serial LIKE '%${req.body.year}'
+            `, {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        ).then(T => {
+            console.log('T' + T[0].max);
+            var tt = T[0].max;
+            if (T[0].max != null) {
+                console.log('T');
+                var num = T[0].max;
+                var serialRV = Number(num.substring(2, 3));
+                var SR = 'ร.' + (serialRV + 1) + '/' + req.body.year;
+                console.log('d' + serialRV);
+                console.log(SR);
+                Buyform.update({ serial: SR }, {
+                    where: {
+                        id: id
+                    }
+                });
+            } else {
+                console.log('55');
+                var SR2 = 'ร.' + 1 + '/' + req.body.year;
+                console.log(SR2);
+                Buyform.update({ serial: SR2 }, {
+                    where: {
+                        id: id
+                    }
+                });
+                // SELECT rv.serial AS serial,users.fullname AS name FROM `reveals` AS rv
+                // INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
+                // LEFT JOIN users ON rv.userId = users.id
+                // WHERE rs.supplieId = 1
+                // UNION
+                // SELECT bf.serial AS serial, bf.name AS name FROM buyforms AS bf
+                // INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
+                // WHERE sb.supplieId = 1
+            }
+        });
+
         res.json({
             update: update
         });
@@ -216,4 +219,30 @@ exports.set_buy_status = async(req, res) => {
             message: e
         });
     }
+};
+
+exports.setremain = async(req, res) => {
+    try {
+        sequelize.query(
+            `SELECT sy.unit FROM supplie_years AS sy WHERE sy.supplieId = ${req.body.supplieId} AND sy.year = '${req.body.year}'`, {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        ).then(sy => {
+            console.log(sy[0].unit + req.body.unit);
+            var sum = sy[0].unit + req.body.unit;
+            sequelize.query(
+                `UPDATE supplie_buy SET remain = ${sy[0].unit + req.body.unit} WHERE supplieId = ${req.body.supplieId} AND buyId = ${req.body.id}`, {
+                    nest: true,
+                    type: QueryTypes.UPDATE
+                }
+            );
+        });
+
+    } catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+
 };

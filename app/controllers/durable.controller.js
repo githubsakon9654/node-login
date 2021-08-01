@@ -69,6 +69,18 @@ exports.findDurableCate = async(req, res) => {
         res.status(403).json({ message: e.errors[0].message });
     }
 };
+exports.findDurableCateByid = async(req, res) => {
+    try {
+        const ducate = await Ducate.findAll({
+            where: {
+                id: req.body.id
+            }
+        });
+        res.json({ ducate: ducate });
+    } catch (e) {
+        res.status(403).json({ message: e.errors[0].message });
+    }
+};
 exports.createDurable = async(req, res) => {
     try {
         // const durable = await Durable.create({
@@ -90,7 +102,6 @@ exports.createDurable = async(req, res) => {
             du_serial: req.body.du_serial,
             ducateId: req.body.ducateId
         });
-
         res.json({ durable: durable });
     } catch (e) {
         res.status(403).json({ message: e.errors[0].message });
@@ -101,7 +112,7 @@ exports.updateDurable = async(req, res) => {
     try {
         const durable = await Durable.update({...req.body }, { where: { id: req.body.id } });
         res.json({
-            message: `This Column Updated is ${durable? true: false}`
+            message: `This Column Updated is ${durable ? true : false}`
         });
     } catch (e) {
         res.status(403).json({ message: e.errors[0].message });
@@ -112,7 +123,7 @@ exports.deleteDurable = async(req, res) => {
     try {
         const durable = await sequelize.query(`DELETE FROM durables WHERE id = ${req.body.id}`);
         res.json({
-            message: `number of delete is ${durable? true: false}`
+            message: `number of delete is ${durable ? true : false}`
         });
     } catch (e) {
         res.status(403).json({
@@ -155,7 +166,7 @@ exports.update_appove_null = async(req, res) => {
     try {
         const durable = await Durable.update({...req.body }, { where: { id: req.body.id } });
         res.json({
-            message: `This Column Updated is ${durable? true: false}`
+            message: `This Column Updated is ${durable ? true : false}`
         });
     } catch (e) {
         res.status(403).json({ message: e.errors[0].message });
