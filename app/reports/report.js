@@ -30,29 +30,39 @@ pdfMake.fonts = {
 
 exports.supplieDetailList = async(req, res, next) => {
     var { id, id2, id3 } = req.params;
-    // const durables = await Durable.findAll();
-    // const fulname = await User.findAll({ where: { id: id3 } });
-    // console.log(fulname[0].fullname);
-    // var fname = fulname[0].fullname;
+
     const list = await sequelize.query(
         `
         SELECT DATE_FORMAT( bf.createdAt, "%d %M %Y") AS date,bf.serial AS serial, s.price AS price, bf.name AS name,sb.unit AS units,sb.sum,'-' AS unit, '-' AS prices,sb.remain AS remain, (sb.remain*s.price) AS sums FROM buyforms AS bf
         INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
         INNER JOIN supplies AS s ON sb.supplieId = s.id
         INNER JOIN supplie_years AS sy ON s.id = sy.supplieId
-        WHERE sb.supplieId = 1 AND bf.serial LIKE '%64'
+        WHERE sb.supplieId = ${id3} AND bf.serial LIKE '%${id}/${id2}'
         UNION
 SELECT DATE_FORMAT( rv.createdAt, "%d %M %Y") AS date,rv.serial AS serial,'-' AS price,users.fullname AS name,'-' AS units,'-' AS sum,rs.unit,(rs.unit*s.price) AS prices,rs.remain AS remain,(rs.remain*s.price) AS sums FROM reveals AS rv
          INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
          INNER JOIN supplies AS s ON rs.supplieId = s.id
          INNER JOIN supplie_years AS sy ON s.id = sy.supplieId
         LEFT JOIN users ON rv.userId = users.id
-        WHERE rs.supplieId =  1 AND rv.serial LIKE '%64'
+        WHERE rs.supplieId = ${id3} AND rv.serial LIKE '%${id}/${id2}'
         `, {
             nest: true,
             type: QueryTypes.SELECT
         }
     );
+    const list2 = await sequelize.query(
+        `
+        SELECT * FROM supplies 
+        INNER JOIN supcates ON supplies.supcateId = supcates.id
+        WHERE supplies.id = ${id3}
+        `, {
+            nest: true,
+            type: QueryTypes.SELECT
+        }
+    );
+    var supname = list2[0].supplie_name;
+    var supcate = list2[0].name;
+    var unit = list2[0].unit_name;
     var length = list.length;
     var rows = [];
     rows.push(
@@ -69,59 +79,8 @@ SELECT DATE_FORMAT( rv.createdAt, "%d %M %Y") AS date,rv.serial AS serial,'-' AS
         ]
     );
 
-    // var fullname = '';
     for (var i = 0; i < length; i++) {
-        // if (!list[i].fullname) {
-        //     fullname = 'คลัง';
-        // } else {
-        //     fullname = list[i].fullname;
-        // }
-        // var cate = list[i].du_serial.substring(4, 12);
-        // var price = new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(list[i].du_price);
-        // var date = list[i].date.toString();
-        // var month = date.substring(5, 7);
-        // var year = +((list[i].date.toString()).substring(2, 4)) + 43;
-        // var day = (list[i].date.toString()).substring(8, 10);
-        // var THmonth;
-        // switch (+month) {
-        //     case 1:
-        //         THmonth = ' ม.ค. ';
-        //         break;
-        //     case 2:
-        //         THmonth = ' ก.พ. ';
-        //         break;
-        //     case 3:
-        //         THmonth = ' มี.ค. ';
-        //         break;
-        //     case 4:
-        //         THmonth = ' เม.ย. ';
-        //         break;
-        //     case 5:
-        //         THmonth = ' พ.ค. ';
-        //         break;
-        //     case 6:
-        //         THmonth = ' มิ.ย. ';
-        //         break;
-        //     case 7:
-        //         THmonth = ' ก.ค. ';
-        //         break;
-        //     case 8:
-        //         THmonth = ' ส.ค. ';
-        //         break;
-        //     case 9:
-        //         THmonth = ' ก.ย. ';
-        //         break;
-        //     case 10:
-        //         THmonth = ' ตุ.ค. ';
-        //         break;
-        //     case 11:
-        //         THmonth = ' พฤ.ย. ';
-        //         break;
-        //     case 12:
-        //         THmonth = ' ธ.ค. ';
-        // }
-        // var THdate = day + THmonth + year;
-        // console.log(THdate)
+
         rows.push([
             list[i].date, list[i].name, list[i].serial, list[i].price, list[i].units, list[i].sum,
             list[i].unit, list[i].prices, list[i].remain, list[i].sums
@@ -152,19 +111,33 @@ SELECT DATE_FORMAT( rv.createdAt, "%d %M %Y") AS date,rv.serial AS serial,'-' AS
             };
         },
         content: [
-            { text: 'ทะเบียนครุภัณฑ์', style: 'header', fontSize: 20, bold: true, margin: [0, 20, 0, 0], alignment: 'center' },
+            { text: 'บัญชีวัสดุ', style: 'header', fontSize: 20, bold: true, margin: [0, 20, 0, 0], alignment: 'center' },
             {
                 alignment: 'justify',
                 columns: [
                     { text: 'แผ่นที่ ', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 0], alignment: '' },
-                    { text: 'ส่วนราชการ สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 0], alignment: '' },
+                    { text: 'ส่วนราชการ สำนักงานคณะกรรมการการศึกษาขั้นพื้นฐาน', style: 'header', fontSize: 18, bold: true, margin: [50, 0, 0, 0], alignment: '' },
                 ]
             },
             {
                 alignment: 'justify',
                 columns: [
-                    { text: 'ประเภท ', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 10], alignment: '' },
-                    { text: 'หน่วยงาน โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 10], alignment: '' },
+                    {},
+                    { text: 'หน่วยงาน โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 18, bold: true, margin: [50, 0, 0, 0], alignment: '' },
+                ]
+            },
+            {
+                alignment: 'justify',
+                columns: [
+                    { text: 'ประเภท ' + supcate, style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 0], alignment: '' },
+                    { text: 'ชื่อหรือประเภทวัสดุ ' + supname, style: 'header', fontSize: 18, bold: true, margin: [50, 0, 0, 0], alignment: '' },
+                ]
+            },
+            {
+                alignment: 'justify',
+                columns: [
+                    { text: 'ขนาดหรือลักษณะ.....................', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 10], alignment: '' },
+                    { text: 'หน่วยนับ ' + unit, style: 'header', fontSize: 18, bold: true, margin: [50, 0, 0, 10], alignment: '' },
                 ]
             },
             {
