@@ -9,6 +9,7 @@ module.exports = function(app) {
     app.post("/api/supplie/remain", controller.getSupplieRemain);
     app.post("/api/supplie/delete", controller.deleteSuppie);
     app.post("/api/supplie/filter", controller.filter);
+    app.post("/api/supplie/filter2", controller.filterOffer);
     app.post("/api/supplie/unit", controller.insertUnit);
     app.post("/api/supplie/unitup", controller.updateUnit);
     app.post("/api/supplie/deleteunit", controller.deleteunit);

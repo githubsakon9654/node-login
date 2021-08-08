@@ -211,6 +211,48 @@ exports.filter = async(req, res) => {
     }
 };
 
+exports.filterOffer = async(req, res) => {
+    const filter = req.body.filter;
+    console.log(filter);
+    try {
+        const supplie = await Supplie.findAll({
+            where: {
+                supplie_name: {
+                    [Op.substring]: `${filter}`
+                }
+            }
+        });
+        const supplies = await sequelize.query(
+            `
+            SELECT supplie_years.supplieId,supplies.supplie_name,supplie_years.id,supplie_years.year,supplie_years.unit,stores.name,supplies.unit_name,supplies.price 
+            FROM supplie_years
+            INNER JOIN supplies ON supplie_years.supplieId = supplies.id
+            INNER JOIN year_units ON year_units.supplieYearId = supplie_years.id
+            LEFT JOIN stores ON supplies.storeId = stores.id
+            WHERE supplies.supplie_name LIKE "%${filter}%" AND supplie_years.year = "${req.body.year}"
+            GROUP BY supplie_years.id
+            `, {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        );
+        console.log(supplies);
+        res.json({
+            sup: supplies
+        });
+        if (supplie === null) {
+            res.json({
+                message: 'This Supplie Not Found!'
+            });
+            return;
+        }
+    } catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+};
+
 exports.insertUnit = async(req, res) => {
     try {
         const supY = await SupYear.findAll({

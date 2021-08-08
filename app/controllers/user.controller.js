@@ -253,3 +253,23 @@ exports.getClass = async(req, res) => {
         res.status(500).send({ message: err.message });
     }
 };
+
+exports.getDirBuy = async(req, res) => {
+    try {
+        const user = await sequelize.query(
+            `
+            SELECT bf.id FROM buyforms AS bf
+            INNER JOIN users ON bf.userId2 = users.id
+            WHERE bf.userId2 = ${req.body.id}
+            `, {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        );
+        res.json({
+            user: user
+        });
+    } catch (e) {
+        res.status(500).send({ message: err.message });
+    }
+}

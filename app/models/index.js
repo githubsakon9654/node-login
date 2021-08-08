@@ -108,7 +108,7 @@ db.reveal.belongsTo(db.user, {
 });
 db.user.hasMany(db.buyform, { as: "buyforms" });
 db.buyform.belongsTo(db.user, {
-    foreignKey: "userId",
+    foreignKey: "userId2",
     as: "users"
 });
 db.user.hasMany(db.durable, { as: "durables" });
