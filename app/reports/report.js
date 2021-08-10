@@ -29,17 +29,18 @@ pdfMake.fonts = {
 
 
 exports.supplieDetailList = async(req, res, next) => {
-    var { id, id2, id3 } = req.params;
+    var { id, id2, id3, id4 } = req.params;
 
     const list = await sequelize.query(
+        // DATE_FORMAT( bf.createdAt, "%d %M %Y")
         `
-        SELECT DATE_FORMAT( bf.createdAt, "%d %M %Y") AS date,bf.serial AS serial, s.price AS price, bf.name AS name,sb.unit AS units,sb.sum,'-' AS unit, '-' AS prices,sb.remain AS remain, (sb.remain*s.price) AS sums FROM buyforms AS bf
+        SELECT  DATE_FORMAT( bf.createdAt, "%d %m %Y") AS date,bf.serial AS serial, s.price AS price, bf.name AS name,sb.unit AS units,sb.sum,'-' AS unit, '-' AS prices,sb.remain AS remain, (sb.remain*s.price) AS sums FROM buyforms AS bf
         INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
         INNER JOIN supplies AS s ON sb.supplieId = s.id
         INNER JOIN supplie_years AS sy ON s.id = sy.supplieId
         WHERE sb.supplieId = ${id3} AND bf.serial LIKE '%${id}/${id2}'
         UNION
-SELECT DATE_FORMAT( rv.createdAt, "%d %M %Y") AS date,rv.serial AS serial,'-' AS price,users.fullname AS name,'-' AS units,'-' AS sum,rs.unit,(rs.unit*s.price) AS prices,rs.remain AS remain,(rs.remain*s.price) AS sums FROM reveals AS rv
+SELECT  DATE_FORMAT( rv.createdAt, "%d %m %Y") AS date,rv.serial AS serial,'-' AS price,users.fullname AS name,'-' AS units,'-' AS sum,rs.unit,(rs.unit*s.price) AS prices,rs.remain AS remain,(rs.remain*s.price) AS sums FROM reveals AS rv
          INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
          INNER JOIN supplies AS s ON rs.supplieId = s.id
          INNER JOIN supplie_years AS sy ON s.id = sy.supplieId
@@ -60,6 +61,16 @@ SELECT DATE_FORMAT( rv.createdAt, "%d %M %Y") AS date,rv.serial AS serial,'-' AS
             type: QueryTypes.SELECT
         }
     );
+    const list3 = await sequelize.query(
+        `
+        SELECT * FROM users 
+        WHERE id = ${id4}
+        `, {
+            nest: true,
+            type: QueryTypes.SELECT
+        }
+    );
+    var fname = list3[0].fullname;
     var supname = list2[0].supplie_name;
     var supcate = list2[0].name;
     var unit = list2[0].unit_name;
@@ -80,9 +91,56 @@ SELECT DATE_FORMAT( rv.createdAt, "%d %M %Y") AS date,rv.serial AS serial,'-' AS
     );
 
     for (var i = 0; i < length; i++) {
+        var dates = list[i].date.toString();
+        console.log(date);
+        var month = dates.substring(3, 5);
+        console.log(month);
+        var year = +((list[i].date.toString()).substring(8, 10)) + 43;
+        console.log(year);
+        var day = (list[i].date.toString()).substring(0, 2);
+        console.log(day);
+        var THmonth;
+        switch (+month) {
+            case 1:
+                THmonth = ' ม.ค. ';
+                break;
+            case 2:
+                THmonth = ' ก.พ. ';
+                break;
+            case 3:
+                THmonth = ' มี.ค. ';
+                break;
+            case 4:
+                THmonth = ' เม.ย. ';
+                break;
+            case 5:
+                THmonth = ' พ.ค. ';
+                break;
+            case 6:
+                THmonth = ' มิ.ย. ';
+                break;
+            case 7:
+                THmonth = ' ก.ค. ';
+                break;
+            case 8:
+                THmonth = ' ส.ค. ';
+                break;
+            case 9:
+                THmonth = ' ก.ย. ';
+                break;
+            case 10:
+                THmonth = ' ตุ.ค. ';
+                break;
+            case 11:
+                THmonth = ' พฤ.ย. ';
+                break;
+            case 12:
+                THmonth = ' ธ.ค. ';
+        }
+        var THdate = day + THmonth + year;
 
         rows.push([
-            list[i].date, list[i].name, list[i].serial, list[i].price, list[i].units, list[i].sum,
+            THdate, list[i].name, list[i].serial, list[i].price, list[i].units, list[i].sum,
             list[i].unit, list[i].prices, list[i].remain, list[i].sums
         ]);
     }
@@ -104,9 +162,9 @@ SELECT DATE_FORMAT( rv.createdAt, "%d %M %Y") AS date,rv.serial AS serial,'-' AS
 
             return {
                 columns: [
-                    { text: 'ออกรายงานโดย ', alignment: 'right' },
+                    { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
                     { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
-                    { text: 'พิมพ์วันที่ ', alignment: 'left' },
+                    { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                 ]
             };
         },
@@ -186,7 +244,6 @@ SELECT DATE_FORMAT( rv.createdAt, "%d %M %Y") AS date,rv.serial AS serial,'-' AS
         res.end(download);
     });
 };
-
 
 // done
 exports.supplieList = async(req, res, next) => {
@@ -1738,6 +1795,122 @@ exports.buyform = async(req, res, next) => {
             },
             content: [
                 { image: 'logo', width: 70, height: 70, alignment: 'center' },
+                { text: 'ใบสั่งซื้อพัสดุ ', style: 'header', fontSize: 20, bold: true, margin: [0, 20, 0, 0], alignment: 'center' },
+                { text: 'หน่วยงานโรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
+                // { text: fullname, style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
+                {
+                    table: {
+                        widths: ['auto', '*', 'auto', 'auto', 'auto', '*'],
+                        body: rows
+                    },
+                    layout: 'lightHorizontalLines'
+                },
+                { text: 'จำนวนรวม ' + unit + ' ชิ้น   ' + 'ราคารวม(ที่คาดการณ์) ' + total + ' บาท', alignment: 'right', margin: [0, 10, 5, 0], style: 'price', fontSize: 16 },
+                { text: 'ราคารวมสุทธิ...................................บาท', alignment: 'right', margin: [0, 10, 5, 0], style: 'price', fontSize: 16 },
+                { text: 'ลงชื่อ......................................ผู้จัดทำ', alignment: 'right', margin: [0, 10, 5, 0], style: 'price', fontSize: 16 },
+            ],
+            images: {
+                logo: logo
+            },
+            styles: {
+                fillheader: {
+                    fontSize: 18,
+                    bold: true,
+                    fillColor: '#A9A9A9'
+                },
+                price: {
+                    fontSize: 16
+                }
+            },
+            defaultStyle: {
+                font: 'THSarabunNew',
+                fontSize: 16
+            }
+        };
+        const pdfDoc = await pdfMake.createPdf(documentDefinition);
+        pdfDoc.getBase64((data) => {
+            res.writeHead(200, {
+                'Content-Type': 'application/pdf',
+                'Content-Disposition': 'attachment;filename="buyform.pdf"'
+            });
+
+            const download = Buffer.from(data.toString('utf-8'), 'base64');
+            res.end(download);
+        });
+    } catch (e) {
+
+    }
+};
+exports.buyformBystore = async(req, res, next) => {
+    try {
+
+        const { id, id2 } = req.params;
+        const list = await sequelize.query(
+            `SELECT bf.id,bf.buyprice,sup.supplie_name,users.fullname,clas.name,
+      sup.price,sb.unit,sup.unit_name,sb.supplieId,bf.status,sto.name AS sname FROM buyforms AS bf
+      INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
+      INNER JOIN supplies AS sup ON sb.supplieId = sup.id
+      INNER JOIN users ON bf.userId = users.id
+      INNER JOIN clas ON users.id = clas.id
+      INNER JOIN stores as sto ON sup.storeId = sto.id
+      WHERE bf.id = ${id} AND sto.id = ${id2}`, {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        );
+        console.log(id);
+        var length = list.length;
+        var rows = [];
+
+        console.log('step 1');
+        console.log('step 2');
+        var name = list[0].fullname;
+        var status = list[0].status;
+        var store = list[0].sname;
+        var total = new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(list[0].buyprice);
+        var unit = 0;
+        rows.push([
+            { text: 'ลำดับที่', style: 'fillheader' }, { text: 'ชื่อพัสดุ', style: 'fillheader' },
+            { text: 'ราคาต่อหน่วย(บาท)', style: 'fillheader' }, { text: 'จำนวน', style: 'fillheader' },
+            { text: 'หน่วย', style: 'fillheader' }, { text: 'หมายเหตุ', style: 'fillheader', alignment: 'center' }
+        ]);
+        var date = '';
+        for (var i = 0; i < length; i++) {
+            if (!list[i].offer_status) {
+                status = 'ยังไม่อนุมัติ';
+            } else {
+                status = 'อนุมัติ';
+            }
+            fullname = list[i].fullname;
+            date = (Date(list[i].createdAt)).substring(0, 24);
+            var price = new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(list[i].price);
+            fullname = list[i].fullname;
+            console.log(date);
+            rows.push([{ text: i + 1, alignment: 'center' }, list[i].supplie_name, { text: price, alignment: 'right' }, { text: list[i].unit, alignment: 'center' }, list[i].unit_name, ""]);
+            unit = unit + list[i].unit;
+        }
+        var documentDefinition = {
+            pageSize: 'A4',
+            header: function(currentPage, pageCount, pageSize) {
+                // you can apply any logic and return any valid pdfmake element
+                // return [
+                //     { text: 'simple text', alignment: (currentPage % 2) ? 'left' : 'right' },
+                //     { text: 'ระบบสารสนเทศเพื่อการจัดการพัสดุและดูแลครุภัณฑ์โรงเรียนบ้านสวายจีก', alignment: 'center' },
+
+                //     { canvas: [{ type: 'rect', x: 170, y: 32, w: pageSize.width - 170, h: 40 }] }
+                // ];
+            },
+            footer: function(currentPage, pageCount) {
+                return {
+                    columns: [
+                        { text: 'ออกรายงานโดย ' + name, alignment: 'right' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
+                        { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
+                    ]
+                };
+            },
+            content: [
+                { image: 'logo', width: 70, height: 70, alignment: 'center' },
                 { text: 'ใบสั่งซื้อพัสดุ ' + store, style: 'header', fontSize: 20, bold: true, margin: [0, 20, 0, 0], alignment: 'center' },
                 { text: 'หน่วยงานโรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
                 // { text: fullname, style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
@@ -2030,7 +2203,7 @@ exports.returnsAll = async(req, res, next) => {
                     THmonth = ' ธ.ค. ';
             }
             var THdate = day + THmonth + year;
-            rows.push([+list[i].id, fullname, status, THdate]);
+            rows.push([i + 1, fullname, status, THdate]);
         }
 
 
@@ -2241,7 +2414,26 @@ exports.returnDetail = async(req, res, next) => {
                         widths: ['auto', 200, '*', '*'],
                         body: rows
                     },
-                    layout: 'lightHorizontalLines'
+                    layout: {
+                        hLineWidth: function(i, node) {
+                            if (i === 0) {
+                                return 0;
+                            }
+                            return (i === node.table.body.length);
+                        },
+                        vLineWidth: function(i) {
+                            return 0;
+                        },
+                        hLineColor: function(i, node) {
+                            return i === 1 ? 'black' : '#aaa' && (i === node.table.body.length) ? 'black' : '#aaa';
+                        },
+                        paddingLeft: function(i) {
+                            return i === 0 ? 0 : 8;
+                        },
+                        paddingRight: function(i, node) {
+                            return 0;
+                        }
+                    }
                 },
             ],
             images: {

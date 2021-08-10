@@ -46,12 +46,12 @@ exports.fillDate = async(req, res) => {
         // const buy = await Buyform.findAll();
         const buy = await sequelize.query(
             `
-            SELECT id,name,status,repel,accept,buyprice,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM buyforms
+            SELECT serial,id,name,status,repel,accept,buyprice,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM buyforms
             WHERE createdAt BETWEEN "${req.body.start}" AND "${req.body.end}"
             `, {
                 nest: true,
                 type: QueryTypes.SELECT
-            })
+            });
         res.json({ buyform: buy });
     } catch (e) {
         res.status(403).json({
@@ -262,12 +262,7 @@ exports.setremain = async(req, res) => {
 
 exports.updateBuy = async(req, res) => {
     try {
-        const buy = await sequelize.query(
-            `UPDATE buyforms SET userId2 = ${req.body.userId2} WHERE ${req.body.id}`, {
-                nest: true,
-                type: QueryTypes.UPDATE
-            }
-        );
+        const buy = await Buyform.update({...req.body }, { where: { id: req.body.id } });
         res.json({ buy: buy });
     } catch (e) {
         res.status(403).json({

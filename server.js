@@ -58,7 +58,7 @@ function initial() {
         name: 'admin'
     });
     Store.create({
-        name: 'ร้าน..',
+        name: 'ห้างหุ้นส่วนจำกัดบุญเที่ยงบุรีรัมย์',
         contect: 'ที่อยู่.. เบอร์ติดต่อ'
     });
     add.addColumn('offer_sup', 'unit', { type: DataTypes.INTEGER(4) });
