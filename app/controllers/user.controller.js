@@ -245,7 +245,17 @@ exports.getAllBudget = async(req, res) => {
 
 exports.getClass = async(req, res) => {
     try {
-        const classe = await cls.findAll();
+        const classe = await Clesse.findAll();
+        res.json({
+            classe: classe
+        });
+    } catch (e) {
+        res.status(500).send({ message: err.message });
+    }
+};
+exports.getClassByname = async(req, res) => {
+    try {
+        const classe = await Clesse.findAll({ where: { name: req.body.name } });
         res.json({
             classe: classe
         });
@@ -258,9 +268,8 @@ exports.getDirBuy = async(req, res) => {
     try {
         const user = await sequelize.query(
             `
-            SELECT bf.id FROM buyforms AS bf
-            INNER JOIN users ON bf.userId2 = users.id
-            WHERE bf.userId2 = ${req.body.id}
+            SELECT bf.id,bf.accept FROM buyforms AS bf    
+            WHERE bf.userId2 = ${req.body.id} OR bf.userId3 = ${req.body.id} OR bf.userId4 = ${req.body.id}
             `, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -272,4 +281,4 @@ exports.getDirBuy = async(req, res) => {
     } catch (e) {
         res.status(500).send({ message: err.message });
     }
-}
+};

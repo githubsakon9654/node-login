@@ -25,6 +25,15 @@ module.exports = (sequelize, Sequelize) => {
         },
         serial: {
             type: Sequelize.STRING(25)
+        },
+        check1: {
+            type: Sequelize.BOOLEAN
+        },
+        check2: {
+            type: Sequelize.BOOLEAN
+        },
+        check3: {
+            type: Sequelize.BOOLEAN
         }
     });
     return buyform;

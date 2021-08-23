@@ -366,19 +366,22 @@ exports.supplieList = async(req, res, next) => {
 };
 // done
 exports.durableList = async(req, res, next) => {
-    var { id, id2, id3 } = req.params;
+    var { id, id2, id3, id4 } = req.params;
     const durables = await Durable.findAll();
     const fulname = await User.findAll({ where: { id: id3 } });
     console.log(fulname[0].fullname);
     var fname = fulname[0].fullname;
     const list = await sequelize.query(
-        `SELECT db.id,db.du_name,db.du_status,db.du_serial,db.get,users.fullname,db.du_price,db.date FROM durables AS db 
-    LEFT JOIN users ON db.userId = users.id`, {
+        `SELECT db.id,db.du_name,db.du_status,db.du_serial,db.get,users.fullname,db.du_price,db.date,dc.name FROM durables AS db 
+    LEFT JOIN users ON db.userId = users.id
+    INNER JOIN ducates AS dc ON db.ducateId = dc.id
+    WHERE db.ducateId = ${id4}`, {
             nest: true,
             type: QueryTypes.SELECT
         }
     );
     var length = list.length;
+    var ducate = list[0].name;
     var rows = [];
     rows.push([
         { text: 'วัน/เดือน/ปี', style: 'fillheader' }, { text: 'เลขที่หรือรหัส', style: 'fillheader' },
@@ -480,7 +483,7 @@ exports.durableList = async(req, res, next) => {
             {
                 alignment: 'justify',
                 columns: [
-                    { text: 'ประเภท ', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 10], alignment: '' },
+                    { text: 'ประเภท ' + ducate, style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 10], alignment: '' },
                     { text: 'หน่วยงาน โรงเรียนบ้านสวายจีก', style: 'header', fontSize: 18, bold: true, margin: [0, 0, 0, 10], alignment: '' },
                 ]
             },
@@ -2142,7 +2145,7 @@ exports.returnsAll = async(req, res, next) => {
         var rows = [];
         rows.push([
             { text: 'ลำดับที่', style: 'fillheader' }, { text: 'ชื่อเจ้าหน้าที่', style: 'fillheader' },
-            { text: 'สถานะ', style: 'fillheader' }, { text: 'เวลาที่เสนอ', style: 'fillheader' }
+            { text: 'สถานะ', style: 'fillheader' }, { text: 'เวลาที่คืน', style: 'fillheader' }
         ]);
         var status = '';
         var date = '';
@@ -2297,7 +2300,7 @@ exports.returnsAll = async(req, res, next) => {
 exports.returnDetail = async(req, res, next) => {
     try {
 
-        const { id } = req.params;
+        const { id, id2 } = req.params;
         const list = await sequelize.query(
             `SELECT db.id,db.du_name,db.du_status,db.du_serial,users.fullname,clas.name,rt.createdAt
       FROM returns AS rt
@@ -2310,12 +2313,14 @@ exports.returnDetail = async(req, res, next) => {
                 type: QueryTypes.SELECT
             }
         );
+        const fulname = await User.findAll({ where: { id: id2 } });
         var length = list.length;
         var rows = [];
         // const fulname = await User.findAll({ where: { id: id3 } });
         // console.log(fulname[0].fullname);
         // var fname = fulname[0].fullname;
         var name = list[0].fullname;
+        var fname = fulname[0].fullname;
         var classes = list[0].name;
         var unit = 0;
         console.log(classes);
@@ -2398,8 +2403,8 @@ exports.returnDetail = async(req, res, next) => {
             footer: function(currentPage, pageCount) {
                 return {
                     columns: [
-                        { text: 'ออกรายงานโดย ' + name, alignment: 'right' },
-                        { text: 'แผ่นที่ ' + currentPage, alignment: 'center' },
+                        { text: 'ออกรายงานโดย ' + fname, alignment: 'right' },
+                        { text: 'แผ่นที่ ' + currentPage + '/' + pageCount, alignment: 'center' },
                         { text: 'พิมพ์วันที่ ' + date, alignment: 'left' },
                     ]
                 };

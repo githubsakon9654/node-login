@@ -132,9 +132,9 @@ exports.insert_reveal_sup = (req, res) => {
     });
 };
 
-exports.updateRemain = (req, res) => {
+exports.updateRemain = async(req, res) => {
     try {
-        const update = sequelize.query(
+        const update = await sequelize.query(
             `UPDATE reveal_sup SET remain=${req.body.remain}
             WHERE revealId=${req.body.id} AND supplieId=${req.body.supplieId}`, {
                 nest: true,
@@ -143,6 +143,24 @@ exports.updateRemain = (req, res) => {
         );
         res.json({
             update: update
+        });
+    } catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+};
+exports.getRevelUnit = async(req, res) => {
+    try {
+        const get = await sequelize.query(
+            `SELECT unit,supplieId FROM reveal_sup
+            WHERE revealId=${req.body.id} AND supplieId=${req.body.supplieId}`, {
+                nest: true,
+                type: QueryTypes.SELECT
+            }
+        );
+        res.json({
+            get: get
         });
     } catch (e) {
         res.status(403).json({

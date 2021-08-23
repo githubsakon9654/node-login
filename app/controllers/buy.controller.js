@@ -146,7 +146,8 @@ exports.get_by_id = async(req, res) => {
     try {
         const buy = await sequelize.query(
             `SELECT bf.repel,bf.accept,bf.store, bf.id,bf.status,bf.buyprice,users.fullname,sup.supplie_name,
-            sup.price,sb.unit,sup.unit_name,sb.supplieId,clas.name,sto.name,bf.userId2 FROM buyforms AS bf
+            sup.price,sb.unit,sup.unit_name,sb.supplieId,clas.name,sto.name,bf.userId2,bf.userId3,bf.userId4, 
+            bf.check1,bf.check2,bf.check3 FROM buyforms AS bf
             INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
             INNER JOIN users ON users.id = bf.userId
             INNER JOIN supplies AS sup ON sb.supplieId = sup.id
@@ -160,7 +161,7 @@ exports.get_by_id = async(req, res) => {
         const buy2 = await sequelize.query(
             `
             SELECT users.fullname from buyforms AS bf
-            INNER JOIN users ON users.id = bf.userId2
+            INNER JOIN users ON users.id = bf.userId2 OR users.id = bf.userId3 OR users.id = bf.userId4
             WHERE bf.id = ${req.body.id}
             `, {
                 nest: true,
@@ -261,6 +262,26 @@ exports.setremain = async(req, res) => {
 };
 
 exports.updateBuy = async(req, res) => {
+    try {
+        console.log(req.body.userId2);
+        console.log(req.body.userId3);
+        console.log(req.body.userId4);
+        const buy = await sequelize.query(
+            `
+            UPDATE buyforms SET userId2 = ${req.body.userId2} ,userId3=${req.body.userId3},userId4=${req.body.userId4}
+            `, {
+                nest: true,
+                type: QueryTypes.UPDATE
+            });
+        res.json({ buy: buy });
+    } catch (e) {
+        res.status(403).json({
+            message: e
+        });
+    }
+};
+
+exports.globalUpdate = async(req, res) => {
     try {
         const buy = await Buyform.update({...req.body }, { where: { id: req.body.id } });
         res.json({ buy: buy });

@@ -80,13 +80,13 @@ exports.getHistory = async(req, res) => {
     try {
         const supplie = await sequelize.query(
             `
-            SELECT bf.serial AS serial, s.price AS price, bf.name AS name,sb.unit AS units,sb.sum,'-' AS unit, '-' AS prices,sb.remain AS remain, (sb.remain*s.price) AS sums FROM buyforms AS bf
+            SELECT bf.serial AS serial, s.price AS price, bf.name AS name,sb.unit AS units,sb.sum,'-' AS unit, '-' AS prices,sb.remain AS remain,s.unit_name, (sb.remain*s.price) AS sums FROM buyforms AS bf
             INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
             INNER JOIN supplies AS s ON sb.supplieId = s.id
             INNER JOIN supplie_years AS sy ON s.id = sy.supplieId
             WHERE sb.supplieId = ${req.body.id} AND bf.serial LIKE '%64'
             UNION
-SELECT rv.serial AS serial,'-' AS price,users.fullname AS name,'-' AS units,'-' AS sum,rs.unit,(rs.unit*s.price) AS prices,rs.remain AS remain,(rs.remain*s.price) AS sums FROM reveals AS rv
+SELECT rv.serial AS serial,'-' AS price,users.fullname AS name,'-' AS units,'-' AS sum,rs.unit,(rs.unit*s.price) AS prices,rs.remain AS remain,s.unit_name,(rs.remain*s.price) AS sums FROM reveals AS rv
              INNER JOIN reveal_sup AS rs ON rs.revealId = rv.id
              INNER JOIN supplies AS s ON rs.supplieId = s.id
              INNER JOIN supplie_years AS sy ON s.id = sy.supplieId
@@ -141,8 +141,13 @@ exports.insertStore = async(req, res) => {
 
 exports.updateSupplie = async(req, res) => {
     const id = req.body.id;
+    console.log(req.body.id);
+    console.log(req.body.price);
+    console.log(req.body.unit_name);
+    console.log(req.body.supplie_name);
     try {
         const supplie = await Supplie.update({...req.body }, { where: { id: id } });
+        console.log('1');
         res.json({
             message: `This Column Updated is ${supplie[0] ? true : false}`
         });

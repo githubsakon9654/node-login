@@ -8,4 +8,5 @@ module.exports = function(app) {
     app.post('/api/reveal/updateAppove', controller.update_appove);
     app.post('/api/reveal/filldate', controller.fill_date);
     app.post('/api/reveal/upRemain', controller.updateRemain);
+    app.post('/api/reveal/getUnit', controller.getRevelUnit);
 };

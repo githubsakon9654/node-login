@@ -23,4 +23,5 @@ module.exports = function(app) {
     app.post('/api/user/allbudget', controller.getAllBudget);
     app.post('/api/user/getdire', controller.getDirBuy);
     app.get('/api/user/cls', controller.getClass);
+    app.post('/api/user/clsByname', controller.getClassByname);
 };
