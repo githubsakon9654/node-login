@@ -4,21 +4,20 @@ const { sequelize } = require("../models");
 const Op = db.Sequelize.Op;
 const Repair = db.repair;
 
-exports.get_All = async (req, res) =>{
-    try{
+exports.get_All = async(req, res) => {
+    try {
         // const repairs = await Repair.findAll();
         const repairs = await sequelize.query(
             `
             SELECT id,rep_name,rep_detail,rep_price,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM repairs
             WHERE durableId = ${req.body.duId}
-            `,
-            {
+            `, {
                 nest: true,
                 type: QueryTypes.SELECT
             }
         )
         res.json({
-            repair:repairs
+            repair: repairs
         })
     } catch (e) {
         res.status(403).json({
@@ -26,8 +25,8 @@ exports.get_All = async (req, res) =>{
         });
     }
 };
-exports.insert = async (req, res) => {
-    try{
+exports.insert = async(req, res) => {
+    try {
         const repair = await Repair.create({
             rep_name: req.body.name,
             rep_detail: req.body.detail,
@@ -35,7 +34,7 @@ exports.insert = async (req, res) => {
             durableId: req.body.duId
         })
         res.json({
-            repair:repair
+            repair: repair
         })
     } catch (e) {
         res.status(403).json({
@@ -43,22 +42,23 @@ exports.insert = async (req, res) => {
         });
     }
 };
-exports.all_repair_list = async(req,res) => {
-    try{
+exports.all_repair_list = async(req, res) => {
+    try {
         const repairs = await sequelize.query(
+            // DATE_FORMAT(DATE_ADD(rp.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date
             `
-            SELECT rp.id,rp.rep_name,rp.rep_detail,rp.rep_price,DATE_FORMAT(DATE_ADD(rp.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date, db.du_name, db.du_serial FROM repairs AS rp
-            INNER JOIN durables AS db ON rp.durableId = db.id 
-            `,
-            {
+            SELECT rp.id,rp.rep_name,rp.rep_detail,rp.rep_price,rp.createdAt AS Date, db.du_name, db.du_serial FROM repairs AS rp
+            INNER JOIN durables AS db ON rp.durableId = db.id
+            ORDER BY rp.createdAt DESC
+            `, {
                 nest: true,
                 type: QueryTypes.SELECT
             }
-        )
+        );
         res.json({
-            repair:repairs
+            repair: repairs
         })
-    }catch (e) {
+    } catch (e) {
         res.status(403).json({
             message: e
         });

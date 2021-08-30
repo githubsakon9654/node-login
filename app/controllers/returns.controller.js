@@ -11,7 +11,7 @@ exports.returns_Alllist = async(req, res) => {
         // const returns = await Returns.findAll();
         const returns = await sequelize.query(
             `
-            SELECT id,re_name,status,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM returns
+            SELECT id,re_name,status,createdAt AS Date FROM returns
             `, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -31,7 +31,7 @@ exports.fill_date = async(req, res) => {
     try {
         const reveal = await sequelize.query(
             `
-            SELECT id,re_name,status,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM returns
+            SELECT id,re_name,status,createdAt AS Date FROM returns
             WHERE createdAt BETWEEN "${req.body.start}" AND "${req.body.end}"
             `, {
                 nest: true,
@@ -57,7 +57,7 @@ exports.return_user_list = async(req, res) => {
         // });
         const returns = await sequelize.query(
             `
-            SELECT id,re_name,status,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM returns
+            SELECT id,re_name,status,createdAt AS Date FROM returns
             WHERE userId = ${req.body.userId}
             `, {
                 nest: true,

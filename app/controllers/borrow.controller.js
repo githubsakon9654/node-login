@@ -11,7 +11,7 @@ exports.list_all = async(req, res) => {
     try {
         // const borrow = await Borrow.findAll();
         const borrow = await sequelize.query(
-            `SELECT id,borrow_name,admin_approve,dire_approvev,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,accept FROM borrows`, {
+            `SELECT id,borrow_name,admin_approve,dire_approvev,createdAt AS Date,accept FROM borrows`, {
                 nest: true,
                 type: QueryTypes.SELECT
             }
@@ -34,7 +34,7 @@ exports.list_user = async(req, res) => {
         //     }
         // });
         const borrow = await sequelize.query(
-            `SELECT id,borrow_name,admin_approve,dire_approvev,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,accept FROM borrows
+            `SELECT id,borrow_name,admin_approve,dire_approvev,createdAt AS Date,accept FROM borrows
             WHERE userId = ${req.body.userId}`, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -55,7 +55,7 @@ exports.fill_date = async(req, res) => {
     try {
         const reveal = await sequelize.query(
             `
-            SELECT id,borrow_name,admin_approve,dire_approvev,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,accept FROM borrows
+            SELECT id,borrow_name,admin_approve,dire_approvev,createdAt AS Date,accept FROM borrows
             WHERE createdAt BETWEEN "${req.body.start}" AND "${req.body.end}"
             `, {
                 nest: true,

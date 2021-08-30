@@ -10,9 +10,10 @@ var appove = false;
 exports.getAll_offer = async(req, res) => {
     try {
         // const offers = await Offer.findAll();
+        // DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date
         const offers = await sequelize.query(
             `
-          SELECT id,offer_name,offer_status,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,price FROM offers
+          SELECT id,offer_name,offer_status,createdAt AS Date,price FROM offers
           `, {
                 nest: true,
                 type: QueryTypes.SELECT

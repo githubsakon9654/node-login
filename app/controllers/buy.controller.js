@@ -11,7 +11,8 @@ exports.buyList = async(req, res) => {
         // const buy = await Buyform.findAll();
         const buy = await sequelize.query(
             `
-            SELECT serial,id,name,status,repel,accept,buyprice,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM buyforms
+            SELECT serial,id,name,status,repel,accept,buyprice,createdAt AS Date FROM buyforms
+            ORDER BY status
             `, {
                 nest: true,
                 type: QueryTypes.SELECT
@@ -46,8 +47,9 @@ exports.fillDate = async(req, res) => {
         // const buy = await Buyform.findAll();
         const buy = await sequelize.query(
             `
-            SELECT serial,id,name,status,repel,accept,buyprice,DATE_FORMAT(DATE_ADD(createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date FROM buyforms
+            SELECT serial,id,name,status,repel,accept,buyprice,createdAt AS Date FROM buyforms
             WHERE createdAt BETWEEN "${req.body.start}" AND "${req.body.end}"
+            ORDER BY status
             `, {
                 nest: true,
                 type: QueryTypes.SELECT

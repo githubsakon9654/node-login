@@ -11,7 +11,7 @@ exports.reveal_list_all = async(req, res) => {
         // const reveals = await Reveal.findAll();
         const reveals = await sequelize.query(
             `
-            SELECT rl.serial,rl.id,rl.admin_approve,rl.total_price,DATE_FORMAT(DATE_ADD(rl.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,
+            SELECT rl.serial,rl.id,rl.admin_approve,rl.total_price,rl.createdAt AS Date,
             us.fullname,rl.accept FROM reveals as rl
             LEFT JOIN users AS us ON rl.userId = us.id
             `, {
@@ -38,7 +38,7 @@ exports.reveal_list_user = async(req, res) => {
         // });
         const reveal = await sequelize.query(
             `
-            SELECT rl.id,rl.admin_approve,rl.total_price,DATE_FORMAT(DATE_ADD(rl.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,us.fullname,rl.accept FROM reveals as rl
+            SELECT rl.id,rl.admin_approve,rl.total_price,rl.createdAt AS Date,us.fullname,rl.accept FROM reveals as rl
             LEFT JOIN users AS us ON rl.userId = us.id
             WHERE rl.userId = ${req.body.userId}
             `, {
@@ -210,7 +210,7 @@ exports.fill_date = async(req, res) => {
     try {
         const reveal = await sequelize.query(
             `
-            SELECT rl.id,rl.admin_approve,rl.total_price,DATE_FORMAT(DATE_ADD(rl.createdAt, INTERVAL 543 YEAR), "%d %M %Y") AS Date,
+            SELECT rl.serial,rl.id,rl.admin_approve,rl.total_price,rl.createdAt AS Date,
             us.fullname,rl.accept FROM reveals as rl
             LEFT JOIN users AS us ON rl.userId = us.id
             WHERE rl.createdAt BETWEEN "${req.body.start}" AND "${req.body.end}"

@@ -1733,7 +1733,7 @@ exports.buyform = async(req, res, next) => {
 
         const { id } = req.params;
         const list = await sequelize.query(
-            `SELECT bf.id,bf.buyprice,sup.supplie_name,users.fullname,clas.name,
+            `SELECT bf.id,bf.buyprice,sup.supplie_name,users.fullname,clas.name,bf.createdAt,
       sup.price,sb.unit,sup.unit_name,sb.supplieId,bf.status,sto.name AS sname FROM buyforms AS bf
       INNER JOIN supplie_buy AS sb ON bf.id = sb.buyId
       INNER JOIN supplies AS sup ON sb.supplieId = sup.id
@@ -1754,6 +1754,51 @@ exports.buyform = async(req, res, next) => {
         var name = list[0].fullname;
         var status = list[0].status;
         var store = list[0].sname;
+        var dateB = list[0].createdAt;
+        var dates = list[0].createdAt.toISOString();
+        console.log(dates);
+        var month = dates.substring(5, 7);
+        var year = +((dates).substring(2, 4)) + 43;
+        var day = (dates).substring(8, 10);
+        var THmonth;
+        switch (+month) {
+            case 1:
+                THmonth = ' ม.ค. ';
+                break;
+            case 2:
+                THmonth = ' ก.พ. ';
+                break;
+            case 3:
+                THmonth = ' มี.ค. ';
+                break;
+            case 4:
+                THmonth = ' เม.ย. ';
+                break;
+            case 5:
+                THmonth = ' พ.ค. ';
+                break;
+            case 6:
+                THmonth = ' มิ.ย. ';
+                break;
+            case 7:
+                THmonth = ' ก.ค. ';
+                break;
+            case 8:
+                THmonth = ' ส.ค. ';
+                break;
+            case 9:
+                THmonth = ' ก.ย. ';
+                break;
+            case 10:
+                THmonth = ' ตุ.ค. ';
+                break;
+            case 11:
+                THmonth = ' พฤ.ย. ';
+                break;
+            case 12:
+                THmonth = ' ธ.ค. ';
+        }
+        var THdate = day + THmonth + year;
         var total = new Intl.NumberFormat('en-IN', { maximumSignificantDigits: 3 }).format(list[0].buyprice);
         var unit = 0;
         rows.push([
@@ -1798,7 +1843,7 @@ exports.buyform = async(req, res, next) => {
             },
             content: [
                 { image: 'logo', width: 70, height: 70, alignment: 'center' },
-                { text: 'ใบสั่งซื้อพัสดุ ', style: 'header', fontSize: 20, bold: true, margin: [0, 20, 0, 0], alignment: 'center' },
+                { text: 'ใบสั่งซื้อพัสดุ ประจำวันที่ ' + THdate, style: 'header', fontSize: 20, bold: true, margin: [0, 20, 0, 0], alignment: 'center' },
                 { text: 'หน่วยงานโรงเรียนบ้านสวายจีก', style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
                 // { text: fullname, style: 'header', fontSize: 20, bold: true, margin: [0, 0, 0, 10], alignment: 'center' },
                 {
